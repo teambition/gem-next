@@ -33,6 +33,7 @@ export interface RemoveEntity {
 
 export interface ListEntity {
   spaceId: string
+  labels?: string[]
   limit?: number
   skip?: number
 }

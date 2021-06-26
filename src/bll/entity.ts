@@ -1,9 +1,9 @@
 import { Collection as MongodbCollection, MongoClient, ObjectId } from 'mongodb'
 import { CreateEntity, Entity, EntityBll, ListEntity, RemoveEntity, UpdateEntity } from '../interface/entity'
-import { QueryResult } from '../interface/query';
+import { QueryResult } from '../interface/query'
 
 export class EntityBllImpl implements EntityBll {
-  private collection: MongodbCollection<Omit<Entity, "id"> & { _id: ObjectId }>
+  private collection: MongodbCollection<Omit<Entity, "id"> & { _id: ObjectId, isDeleted: boolean }>
   private defaultStorageEngineId = ''
 
   constructor(db: MongoClient) {
@@ -11,13 +11,14 @@ export class EntityBllImpl implements EntityBll {
   }
 
   async create(createEntity: CreateEntity): Promise<Entity> {
-    const insertDoc: Omit<Entity, "id"> = {
+    const insertDoc: Omit<Entity, "id"> & { isDeleted: boolean } = {
       spaceId: createEntity.spaceId,
       name: createEntity.name,
       labels: createEntity.labels || [],
       storageEngineId: createEntity.storageEngineId || this.defaultStorageEngineId,
       createTime: new Date(),
       updateTime: new Date(),
+      isDeleted: false,
     }
 
     // add default labels
@@ -30,9 +31,11 @@ export class EntityBllImpl implements EntityBll {
     })
   }
   async list(listEntity: ListEntity): Promise<QueryResult<Entity>> {
-    const { spaceId, limit } = listEntity
+    const { spaceId, labels, limit } = listEntity
     const resp = await this.collection.find({
-      spaceId: spaceId
+      spaceId,
+      labels,
+      isDeleted: false,
     }).toArray()
     const result = resp.map(({ name, spaceId, labels, storageEngineId, createTime, updateTime, _id }) => ({
       id: String(_id), name, spaceId, labels, storageEngineId, createTime, updateTime,
@@ -43,10 +46,25 @@ export class EntityBllImpl implements EntityBll {
     }
   }
   async update(updateEntity: UpdateEntity): Promise<Entity> {
+    // TODO
+    // const doc = await this.collection.findOneAndUpdate({}, {
+    //   $set: {
+
+    //   }
+    // }, { returnDocument: 'after' })
     throw new Error('Method not implemented.');
   }
   async remove(removeEntity: RemoveEntity): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    const resp = await this.collection.updateOne({
+      _id: new ObjectId(removeEntity.id),
+      spaceId: removeEntity.spaceId,
+      isDeleted: false,
+    }, {
+      $set: {
+        updateTime: new Date(),
+        isDeleted: true,
+      }
+    })
+    return !!resp.modifiedCount
   }
-
 }
