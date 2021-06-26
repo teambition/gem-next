@@ -1,2 +1,4 @@
 /node_modules
 .git-credentials
+/coverage
+/.nyc_output
