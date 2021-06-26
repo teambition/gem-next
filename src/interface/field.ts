@@ -39,6 +39,8 @@ export interface RemoveField {
 export interface ListField {
   spaceId: string
   entityId?: string
+  limit?: number
+  skip?: number
 }
 
 export interface FieldBll {

@@ -8,7 +8,7 @@
 - createTime
 - updateTime
 
-### Record
+### RecordData
 - id
 - entityId
 - labels

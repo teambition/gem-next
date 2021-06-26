@@ -10,13 +10,13 @@ export interface Entity {
   createTime: Date
 }
 
-export interface CreateEntity {
-  name: string
-  spaceId: string
-  storageEngineId?: string
-  labels?: string[]
-}
-
+export type CreateEntity = Partial<Pick<Entity, 'storageEngineId' | 'labels'>> & Pick<Entity, 'name' | 'spaceId'>
+// export interface CreateEntity {
+//   name: string
+//   spaceId: string
+//   storageEngineId?: string
+//   labels?: string[]
+// }
 export interface UpdateEntity {
   id: string
   spaceId: string
@@ -33,6 +33,8 @@ export interface RemoveEntity {
 
 export interface ListEntity {
   spaceId: string
+  limit?: number
+  skip?: number
 }
 
 export interface EntityBll {

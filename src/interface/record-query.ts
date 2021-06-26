@@ -2,15 +2,16 @@ import { QueryResult } from './query'
 import { RecordData } from './record'
 
 // TODO
-interface RecordQuery {
+interface RecordQuery<FilterType, SortType> {
   spaceId: string
   entityId: string
-  filter: any
-  sort?: any
+  filter: FilterType
+  // queryEngine?: string
+  sort?: SortType
   offset?: number
   limit?: number
 }
 
-export interface RecordQueryBll {
-  query(query: RecordQuery): Promise<Iterable<RecordData>>
+export interface RecordQueryBll<FilterType, SortType> {
+  query(query: RecordQuery<FilterType, SortType>): Promise<AsyncIterable<RecordData>>
 }
