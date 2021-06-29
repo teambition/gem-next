@@ -1,9 +1,12 @@
-import { Collection as MongodbCollection } from 'mongodb'
+import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 
 export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
-  private collection: MongodbCollection
+  private db: MongodbDatabase
+  private get collection(): MongodbCollection {
+    return this.db.collection('record')
+  }
   async create(createRecord: CreateRecord): Promise<RecordData> {
     const doc: Record<string,any> = {
       spaceId: createRecord.spaceId,

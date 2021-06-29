@@ -1,11 +1,14 @@
 import { Transform as StreamTransform, pipeline } from 'stream'
-import { Collection as MongodbCollection, Cursor as MongodbCursor } from 'mongodb'
+import { Collection as MongodbCollection, Cursor as MongodbCursor, Db as MongodbDatabase } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
-  private collection: MongodbCollection
+  private db: MongodbDatabase
+  private get collection(): MongodbCollection {
+    return this.db.collection('record')
+  }
   async query(query: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
     // TODO: it is unsafe to use user's filter as mongo query condition directly
     const conds = Object.assign({}, query.filter, {
