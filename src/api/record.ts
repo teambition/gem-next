@@ -1,9 +1,9 @@
-import { RecordQueryBll } from '../../interface/record-query'
-import mongodbCollectionRecordQueryBllImpl from '../mongodb-collection-engine/record-query'
+import { RecordQueryBll } from '../interface/record-query'
+import mongodbCollectionRecordQueryBllImpl from '../bll/mongodb-collection-engine/record-query'
 
 export class RecordAPI {
   private bll: RecordQueryBll<any, any> = mongodbCollectionRecordQueryBllImpl
-  async main () {
+  async query () {
     const resp = await this.bll.query({
       spaceId: '1',
       entityId: '2',
@@ -17,3 +17,5 @@ export class RecordAPI {
     }
   }
 }
+
+export default new RecordAPI()
