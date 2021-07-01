@@ -1,14 +1,23 @@
 import { Transform as StreamTransform, pipeline } from 'stream'
-import { Collection as MongodbCollection, Cursor as MongodbCursor, Db as MongodbDatabase } from 'mongodb'
+import { Collection as MongodbCollection, Cursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
-import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
+import dbClient from '../../service/mongodb'
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
-  private db: MongodbDatabase
+  private dbClient: MongoClient
+  constructor(options: { dbClient?: MongoClient } = {}) {
+    this.dbClient = options.dbClient || dbClient
+  }
+
+  private get db(): MongodbDatabase {
+    return this.dbClient.db()
+  }
+
   private get collection(): MongodbCollection {
     return this.db.collection('record')
   }
+
   async query(query: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
     // TODO: it is unsafe to use user's filter as mongo query condition directly
     const conds = Object.assign({}, query.filter, {
@@ -50,3 +59,5 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return pipeline(cursor, transform)
   }
 }
+
+export default new MongodbCollectionRecordQueryBllImpl()

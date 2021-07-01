@@ -1,0 +1,22 @@
+{
+  "ts-node": {
+    "files": true
+  },
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["es7"],
+    "rootDir": "src",
+    "outDir": "lib",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "allowJs": true,
+    "inlineSources": true,
+    "experimentalDecorators": true,
+    "skipLibCheck": true,
+  },
+  "include": [
+    "src/**/*",
+    "@types/**/*",
+  ],
+}

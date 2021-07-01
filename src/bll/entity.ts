@@ -1,14 +1,22 @@
-import { Collection as MongodbCollection, MongoClient, ObjectId } from 'mongodb'
+import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, ObjectId } from 'mongodb'
 import { CreateEntity, Entity, EntityBll, ListEntity, RemoveEntity, UpdateEntity } from '../interface/entity'
 import { QueryResult } from '../interface/query'
+import dbClient from '../service/mongodb'
 
 export class EntityBllImpl implements EntityBll {
-  private collection: MongodbCollection<Omit<Entity, "id"> & { _id: ObjectId, isDeleted: boolean }>
-  private defaultStorageEngineId = ''
-
-  constructor(db: MongoClient) {
-    this.collection = db.db().collection('entity')
+  private dbClient: MongoClient
+  constructor(options: { dbClient?: MongoClient } = {}) {
+    this.dbClient = options.dbClient || dbClient
   }
+  private get db(): MongodbDatabase {
+    return this.dbClient.db()
+  }
+
+  private get collection(): MongodbCollection<Omit<Entity, "id"> & { _id: ObjectId, isDeleted: boolean }> {
+    return this.db.collection('entity')
+  }
+
+  private defaultStorageEngineId = ''
 
   async create(createEntity: CreateEntity): Promise<Entity> {
     const insertDoc: Omit<Entity, "id"> & { isDeleted: boolean } = {

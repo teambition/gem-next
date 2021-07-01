@@ -1,0 +1,12 @@
+import * as mongodb from 'mongodb'
+import * as config from 'config'
+
+const options: mongodb.MongoClientOptions = {}
+Object.assign(options, config.MONGODB.OPTIONS)
+export const client = new mongodb.MongoClient(config.MONGODB.URL, options)
+client.connect().catch(err => {
+  console.error('fatal mongo connection error', err)
+  process.exit(1)
+})
+
+export default client

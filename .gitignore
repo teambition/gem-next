@@ -2,3 +2,5 @@
 .git-credentials
 /coverage
 /.nyc_output
+/config/local*
+/config/dev*
