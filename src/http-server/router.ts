@@ -1,7 +1,13 @@
 import recordAPI from '../api/record'
-import * as Router from 'koa-router'
+import * as path from 'path'
+import * as glob from 'glob'
+import { getRouter } from './decorator'
 
-export const router = new Router()
-router.post('/api/record/query', recordAPI.query.bind(recordAPI))
-router.post('/api/record/create', recordAPI.create.bind(recordAPI))
+glob.sync('api/**/*.ts', {
+  cwd: path.resolve(__dirname, '../'),
+}).forEach(file => {
+  require('../' + file)
+})
+
+export const router = getRouter('/api')
 export default router
