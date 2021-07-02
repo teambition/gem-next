@@ -76,3 +76,5 @@ export class EntityBllImpl implements EntityBll {
     return !!resp.modifiedCount
   }
 }
+
+export default new EntityBllImpl()

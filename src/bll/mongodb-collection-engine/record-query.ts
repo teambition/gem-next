@@ -1,8 +1,11 @@
+import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
 import { Collection as MongodbCollection, Cursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
+
+const pipelinePromise = promisify(pipeline)
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
   private dbClient: MongoClient
@@ -22,7 +25,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     // TODO: it is unsafe to use user's filter as mongo query condition directly
     const conds = Object.assign({}, query.filter, {
       spaceId: query.spaceId,
-      entitId: query.entityId,
+      entityId: query.entityId,
     })
     const cursor = this.collection.find(conds)
     // TODO: this is unsafe to use user's sort as mongo sort directly
@@ -56,7 +59,11 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
         cb(null, data)
       }
     })
-    return pipeline(cursor, transform)
+    pipelinePromise(cursor, transform).catch(err => {
+      console.error(err)
+      transform.emit('error', err)
+    })
+    return transform
   }
 }
 

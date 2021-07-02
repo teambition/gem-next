@@ -18,10 +18,12 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   }
 
   async create(createRecord: CreateRecord): Promise<RecordData> {
-    const doc: Record<string,any> = {
+    const doc: Record<string, any> = {
       spaceId: createRecord.spaceId,
       entityId: createRecord.entityId,
       labels: createRecord.labels || [],
+      createTime: new Date(),
+      updateTime: new Date(),
     }
     for (const cfKey in createRecord.cf) {
       doc['cf:' + cfKey] = createRecord.cf[cfKey]
