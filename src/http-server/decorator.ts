@@ -25,16 +25,24 @@ interface ControllerMeta {
   methodMap: Record<string, RouteMeta>
 }
 
+interface ParamDefinition {
+  path: 'path' | 'query' | 'header' | 'body' | string
+  name: string
+}
+
+interface RouteParamsInput {
+  [key: string]: string | Partial<ParamDefinition>
+}
+
+interface RouteParams {
+  [key: string]: ParamDefinition
+}
+
 interface RouteMeta {
   method: string
   path: string
   // method_path: {method: string, path: string}[]
-  RequestDataDefine?: {
-    [key: string]: {
-      path: 'path' | 'query' | 'header' | 'body'
-      name: string
-    }
-  }
+  params?: RouteParams
   middlewares: Middleware[]
   befores: MiddlewareFn[]
   afters: MiddlewareFn[]
@@ -65,6 +73,27 @@ export function controller(prefix: string = '/') {
   }
 }
 
+export function params(data: RouteParamsInput) {
+  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+    debug('@params')
+    const constructor: ControllerConstructor = target.constructor
+    if (!controllerMap.has(constructor)) controller('')(constructor)
+    if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
+
+    controllerMap.get(constructor).methodMap[propertyName].params = Object.keys(data).reduce<RouteParams>((r, k) => {
+      if (typeof data[k] === 'string') {
+        r[k] = { path: String(data[k]), name: k }
+      } else {
+        r[k] = {
+          name: (data[k] as ParamDefinition).name || k,
+          path: (data[k] as ParamDefinition).path || 'body',
+        }
+      }
+      return r
+    }, {})
+  }
+}
+
 export function middleware(middleware: Middleware) {
   return (target: any, propertyName?: string, descriptor?: PropertyDescriptor) => {
     debug('@middleware')
@@ -81,6 +110,10 @@ export function middleware(middleware: Middleware) {
       controllerMap.get(constructor).methodMap[propertyName].middlewares.push(middleware)
     }
   }
+}
+
+export function validator(jsonSchema) {
+  // TODO: generator validator
 }
 
 export function before(beforeFunc: MiddlewareFn) {
@@ -130,7 +163,7 @@ export function request(method = 'get', path = '/') {
       methodMap[propertyName] = {
         method,
         path,
-        RequestDataDefine: {},
+        params: {},
         middlewares: [],
         befores: [],
         afters: [],
@@ -153,6 +186,17 @@ export function post(path = '/') {
   return request('post', path)
 }
 
+function getParamsValue(ctx: Context, paramDefinition: ParamDefinition) {
+  const paramPath = paramDefinition.path || 'body'
+  const name = paramDefinition.name
+  switch (paramPath) {
+    case 'path': return ctx.params[name]
+    case 'query': return ctx.query[name]
+    default: // body
+      return (ctx.request.body || {})[name] 
+  }
+}
+
 export function getRouter(prefix = '/') {
   debug('getRouter')
   const router = new KoaRouter({ prefix })
@@ -171,22 +215,19 @@ export function getRouter(prefix = '/') {
 
       // define data middleware
       middlewares.push(async (ctx, next) => {
-        const data = Object.keys(methodMeta.RequestDataDefine).reduce((result, key) => {
-          const defineKey = methodMeta.RequestDataDefine[key]
-          let value
-          if (defineKey.path === 'path') {
-            value = ctx.params[defineKey.name]
-          } else if (defineKey.path === 'query') {
-            value = ctx.query[defineKey.name]
-          } else if (defineKey.path === 'body') {
-            value = ((ctx.request as any).body || {})[defineKey.name]
-          }
-          result[key] = value
+        ctx.state = Object.assign({}, ctx.params, ctx.query, ctx.request.body)
+        const data = Object.keys(methodMeta.params).reduce((result, key) => {
+          const paramDefinition = methodMeta.params[key]
+          paramDefinition.name = paramDefinition.name || key
+          result[key] = getParamsValue(ctx, paramDefinition)
           return result
         }, {})
-        ctx.state = data
+        ctx.state = Object.assign(ctx.state, data)
         return next()
       })
+
+      // validator
+      // TODO: add validator
 
       // middleware
       middlewares.push(...methodMeta.middlewares)
@@ -228,7 +269,6 @@ export function getRouter(prefix = '/') {
 
     middlewares.push(controllerRouter.routes())
     router.use(controllerMeta.prefix, ...middlewares)
-    // router.use(controllerMeta.prefix, ...controllerMeta.middlewares, controllerRouter.routes())
   })
   return router
 }
