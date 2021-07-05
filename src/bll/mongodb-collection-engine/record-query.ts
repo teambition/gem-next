@@ -9,6 +9,7 @@ const pipelinePromise = promisify(pipeline)
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
   private dbClient: MongoClient
+  private reservedKeys = ['id', 'createTime', 'updateTime']
   constructor(options: { dbClient?: MongoClient } = {}) {
     this.dbClient = options.dbClient || dbClient
   }
@@ -21,23 +22,29 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.db.collection('record')
   }
 
-  async query(query: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
+  async query({ filter, sort, spaceId, entityId, limit, skip = 0 }: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
     // TODO: it is unsafe to use user's filter as mongo query condition directly
-    const conds = Object.assign({}, query.filter, {
-      spaceId: query.spaceId,
-      entityId: query.entityId,
+    filter = filter || {}
+    const filterData = Object.keys(filter).reduce<Record<string, any>>((r, k) => {
+      k = this.reservedKeys.includes(k) ? k : `cf:${k}`
+      // TODO: value should be decode from bson
+      return Object.assign(r, {[k]: filter[k]})
+    }, {})
+    const conds = Object.assign(filterData, {
+      spaceId,
+      entityId,
     })
     const cursor = this.collection.find(conds)
     // TODO: this is unsafe to use user's sort as mongo sort directly
-    if (query.sort) {
-      cursor.sort(Object.keys(query.sort).reduce<Record<string, any>>((r, k) => {
-        const sortOrder = query.sort[k] || 1
+    if (sort) {
+      cursor.sort(Object.keys(sort).reduce<Record<string, any>>((r, k) => {
+        const sortOrder = sort[k] || 1
         if (k === 'id') k = '_id'
         return Object.assign(r, { [k]: sortOrder })
       }, {}))
     }
-    if (query.skip) cursor.skip(query.skip)
-    if (query.limit) cursor.limit(query.limit)
+    if (skip) cursor.skip(skip)
+    if (limit) cursor.limit(limit)
 
     // TODO: cursor has invalid Schema for RecordData should be transform in a pipe
     return this.transform(cursor)
