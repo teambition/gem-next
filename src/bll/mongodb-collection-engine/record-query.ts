@@ -52,6 +52,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
 
   transform(cursor: MongodbCursor): AsyncIterable<RecordData> {
     const transform = new StreamTransform({
+      readableObjectMode: true,
       objectMode: true,
       transform(doc: any, _, cb) {
         const data: RecordData = {
@@ -69,9 +70,11 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
               return result
             }, {})
         }
-        cb(null, data)
+        this.push(data)
+        cb()
       }
     })
+    // cursor.pipe(transform)
     pipelinePromise(cursor, transform).catch(err => {
       console.error(err)
       transform.emit('error', err)

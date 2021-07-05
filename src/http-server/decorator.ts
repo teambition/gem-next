@@ -1,7 +1,10 @@
-import * as Debug from 'debug'
+import { promisify } from 'util'
+import { Transform, pipeline } from 'stream'
 import { Context, Middleware } from 'koa'
 import * as KoaRouter from 'koa-router'
+import * as Debug from 'debug'
 
+const pipelinePromise = promisify(pipeline)
 const debug = Debug('koa:decorator')
 
 interface Controller {
@@ -48,6 +51,7 @@ interface RouteMeta {
   afters: MiddlewareFn[]
   requestStream?: boolean
   responseStream?: boolean
+  responseStreamHandler?: () => Transform
   propertyName: string
   // method: (req: any) => Promise<any>
 }
@@ -152,7 +156,6 @@ export function after(afterFunc: MiddlewareFn) {
   }
 }
 
-
 export function request(method = 'get', path = '/') {
   return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
     const constructor = target.constructor
@@ -185,6 +188,18 @@ export function get(path = '/') {
 export function post(path = '/') {
   return request('post', path)
 }
+
+export function responseStream(transform: () => Transform) {
+  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
+    const constructor = target.constructor
+    debug('@responseStream')
+    if (!controllerMap.has(constructor)) controller('')(constructor)
+    if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
+    controllerMap.get(constructor).methodMap[propertyName].responseStreamHandler = transform
+    controllerMap.get(constructor).methodMap[propertyName].responseStream = true
+  }
+}
+
 
 function getParamsValue(ctx: Context, paramDefinition: ParamDefinition) {
   const paramPath = paramDefinition.path || 'body'
@@ -249,7 +264,15 @@ export function getRouter(prefix = '/') {
       // run process
       middlewares.push(async (ctx, next) => {
         const result = await controller[methodMeta.propertyName](ctx.state, ctx)
-        ctx.body = result
+        if (methodMeta.responseStreamHandler) {
+          const target = methodMeta.responseStreamHandler()
+          ctx.body = target
+          pipelinePromise(result, target).catch(err => {
+            console.error(err)
+          })
+        } else {
+          ctx.body = result
+        }
         return next()
       })
 

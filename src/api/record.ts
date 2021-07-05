@@ -1,8 +1,11 @@
 import { } from 'koa'
+// import { promisify } from 'util'
+import { Readable, Transform, pipeline } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, post, validator } from '../http-server/decorator'
+import { after, before, controller, post, responseStream, validator } from '../http-server/decorator'
 import recordBll from '../bll/record'
+import { RecordData } from '../interface/record'
 
 interface RecordQueryRequest {
   spaceId: string
@@ -21,6 +24,8 @@ interface RecordCreateRequest {
   }
 }
 
+// const pipelinePromise = promisify(pipeline)
+
 @controller('/record')
 @after(async ctx => {
   console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
@@ -34,7 +39,28 @@ export class RecordAPI {
 
   @post('/query')
   @before(async (ctx) => {})
+  // @after(async (ctx) => {
+  //   const source: AsyncIterable<RecordData> = ctx.body as any
+  //   const target = ctx.body = new Transform({
+  //     transform(data, _, cb) {
+  //       cb(null, JSON.stringify(data) + '\n')
+  //     }
+  //   })
+  //   pipelinePromise(source, target).catch(err => {
+  //     console.error(err)
+  //   })
+  // })
   // @validator({})
+  @responseStream(() => {
+    return new Transform({
+      // readableObjectMode: true,
+      objectMode: true,
+      transform(record, _, cb) {
+        const data = JSON.stringify(record) + '\n'
+        cb(null, data)
+      }
+    })
+  })
   async query ({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,
@@ -45,25 +71,12 @@ export class RecordAPI {
       filter,
     })
 
-    const result = []
-    for await (const doc of resp) {
-      result.push(doc)
-    }
-
-    return result
+    return resp
   }
 
   @post('/query-array')
-  async queryArray ({ spaceId, entityId, limit, skip, sort, filter }: RecordQueryRequest) {
-    const resp = await this.recordBll.query({
-      spaceId,
-      entityId,
-      limit,
-      skip,
-      sort,
-      filter,
-    })
-
+  async queryArray (request: RecordQueryRequest) {
+    const resp = await this.query(request)
     const result = []
     for await (const doc of resp) {
       result.push(doc)
