@@ -17,6 +17,24 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     return this.db.collection('record')
   }
 
+  transform(doc: any): RecordData {
+    return {
+      id: String(doc._id),
+      spaceId: String(doc.spaceId),
+      entityId: String(doc.entityId),
+      labels: doc.labels || [],
+      createTime: new Date(doc.createTime),
+      updateTime: new Date(doc.updateTime),
+      cf: Object.keys(doc)
+        .filter(key => /^cf:/.test(key))
+        .reduce<{[x: string]: any}>((result, key) => {
+          const cfKey = key.slice(3) // omit 'cf:'
+          Object.assign(result, {[cfKey]: doc[key]})
+          return result
+        }, {})
+    }
+  }
+
   async create(createRecord: CreateRecord): Promise<RecordData> {
     const doc: Record<string, any> = {
       spaceId: createRecord.spaceId,
@@ -30,7 +48,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     }
     const resp = await this.collection.insertOne(doc)
     doc.id = String(resp.insertedId)
-    return doc as any // TODO
+    return this.transform(doc)
   }
   async update(updateRecord: UpdateRecord): Promise<RecordData> {
     throw new Error('Not Implemented')

@@ -21,11 +21,11 @@ interface RecordCreateRequest {
   }
 }
 
-@controller('/record')
+// @controller('/record')
 @after(async ctx => {
   console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
 })
-export class RecordAPI {
+export class TableRecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 
   constructor(options: { recordBll?: RecordStorageBll & RecordQueryBll<any, any> } = {}) {
@@ -84,4 +84,4 @@ export class RecordAPI {
   }
 }
 
-export default new RecordAPI()
+export default new TableRecordAPI()

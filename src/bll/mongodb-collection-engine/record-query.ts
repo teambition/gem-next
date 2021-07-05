@@ -29,7 +29,13 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     })
     const cursor = this.collection.find(conds)
     // TODO: this is unsafe to use user's sort as mongo sort directly
-    if (query.sort) cursor.sort(query.sort)
+    if (query.sort) {
+      cursor.sort(Object.keys(query.sort).reduce<Record<string, any>>((r, k) => {
+        const sortOrder = query.sort[k] || 1
+        if (k === 'id') k = '_id'
+        return Object.assign(r, { [k]: sortOrder })
+      }, {}))
+    }
     if (query.skip) cursor.skip(query.skip)
     if (query.limit) cursor.limit(query.limit)
 
@@ -40,19 +46,19 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
   transform(cursor: MongodbCursor): AsyncIterable<RecordData> {
     const transform = new StreamTransform({
       objectMode: true,
-      transform(chunk: any, _, cb) {
+      transform(doc: any, _, cb) {
         const data: RecordData = {
-          id: String(chunk._id),
-          spaceId: String(chunk.spaceId),
-          entityId: String(chunk.entityId),
-          labels: chunk.labels || [],
-          createTime: new Date(chunk.createTime),
-          updateTime: new Date(chunk.updateTime),
-          cf: Object.keys(chunk)
+          id: String(doc._id),
+          spaceId: String(doc.spaceId),
+          entityId: String(doc.entityId),
+          labels: doc.labels || [],
+          createTime: new Date(doc.createTime),
+          updateTime: new Date(doc.updateTime),
+          cf: Object.keys(doc)
             .filter(key => /^cf:/.test(key))
             .reduce<{[x: string]: any}>((result, key) => {
               const cfKey = key.slice(3) // omit 'cf:'
-              Object.assign(result, {[cfKey]: chunk[key]})
+              Object.assign(result, {[cfKey]: doc[key]})
               return result
             }, {})
         }

@@ -203,6 +203,7 @@ export function getRouter(prefix = '/') {
   const controllers = Array.from(controllerMap.values())
   controllers.forEach(controllerMeta => {
     debug('getRouter prefix: ', controllerMeta.prefix)
+    if (!controllerMeta.prefix) return
     const controller = new controllerMeta.constructor()
     const controllerRouter = new KoaRouter()
     // middleware // maybe validator or authorzation check.
@@ -211,6 +212,7 @@ export function getRouter(prefix = '/') {
     methods.forEach(methodMeta => {
       debug('getRouter methodMeta', methodMeta)
       debug('getRouter method: ', methodMeta.method, ' prefix: ', controllerMeta.prefix, 'path', methodMeta.path)
+      if (!methodMeta.path) return
       const middlewares: Middleware[] = []
 
       // define data middleware
