@@ -2,6 +2,7 @@ import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase } f
 import { RecordData } from '../../interface/record'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 import dbClient from '../../service/mongodb'
+import { transform } from './util'
 
 export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   private dbClient: MongoClient
@@ -17,32 +18,21 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     return this.db.collection('record')
   }
 
-  transform(doc: any): RecordData {
-    return {
-      id: String(doc._id),
-      spaceId: String(doc.spaceId),
-      entityId: String(doc.entityId),
-      labels: doc.labels || [],
-      createTime: new Date(doc.createTime),
-      updateTime: new Date(doc.updateTime),
-      cf: Object.keys(doc)
-        .filter(key => /^cf:/.test(key))
-        .reduce<{[x: string]: any}>((result, key) => {
-          const cfKey = key.slice(3) // omit 'cf:'
-          Object.assign(result, {[cfKey]: doc[key]})
-          return result
-        }, {})
-    }
-  }
-
   async create(createRecord: CreateRecord): Promise<RecordData> {
+    const labels = createRecord.labels || []
+    const labelSet = new Set<string>()
+    labels.forEach(label => labelSet.add(label))
+    labelSet.add(`space:${createRecord.spaceId}`)
+    labelSet.add(`entity:${createRecord.entityId}`)
+
     const doc: Record<string, any> = {
       spaceId: createRecord.spaceId,
       entityId: createRecord.entityId,
-      labels: createRecord.labels || [],
+      labels: Array.from(labels),
       createTime: new Date(),
       updateTime: new Date(),
     }
+
     for (const cfKey in createRecord.cf) {
       // TODO: value should be decode from bson
       const value = createRecord.cf[cfKey]
@@ -50,7 +40,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     }
     const resp = await this.collection.insertOne(doc)
     doc.id = String(resp.insertedId)
-    return this.transform(doc)
+    return transform(doc)
   }
   async update(updateRecord: UpdateRecord): Promise<RecordData> {
     throw new Error('Not Implemented')

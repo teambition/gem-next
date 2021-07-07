@@ -14,15 +14,30 @@ export class RecordBllImpl implements RecordStorageBll, RecordQueryBll<any, any>
   }
 
   async create(createRecord: CreateRecord): Promise<RecordData> {
+    // TODO: get query.entityId and find entity
+    // TODO: get entity.engineId and find engine
+    // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordStorageBll.create(createRecord)
   }
+
   async update(updateRecord: UpdateRecord): Promise<RecordData> {
+    // TODO: get query.entityId and find entity
+    // TODO: get entity.engineId and find engine
+    // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordStorageBll.update(updateRecord)
   }
+
   async remove(removeRecord: RemoveRecord): Promise<boolean> {
+    // TODO: get query.entityId and find entity
+    // TODO: get entity.engineId and find engine
+    // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordStorageBll.remove(removeRecord)
   }
+
   async query(query: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
+    // TODO: get query.entityId and find entity
+    // TODO: get entity.engineId and find engine
+    // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordQueryBll.query(query)
   }
 }

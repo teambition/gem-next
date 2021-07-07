@@ -15,7 +15,7 @@ export interface UpdateRecord {
   removeLabels?: string[]
   setLabels?: string[]
   addLabels?: string[]
-  RecordOptions?: any
+  options?: any
   cf: RecordCustomfieldMap
 }
 

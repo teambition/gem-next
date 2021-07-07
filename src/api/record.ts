@@ -39,23 +39,11 @@ export class RecordAPI {
 
   @post('/query')
   @before(async (ctx) => {})
-  // @after(async (ctx) => {
-  //   const source: AsyncIterable<RecordData> = ctx.body as any
-  //   const target = ctx.body = new Transform({
-  //     transform(data, _, cb) {
-  //       cb(null, JSON.stringify(data) + '\n')
-  //     }
-  //   })
-  //   pipelinePromise(source, target).catch(err => {
-  //     console.error(err)
-  //   })
-  // })
-  // @validator({})
   @responseStream(() => {
     return new Transform({
       // readableObjectMode: true,
       objectMode: true,
-      transform(record, _, cb) {
+      transform(record: RecordData, _, cb) {
         const data = JSON.stringify(record) + '\n'
         cb(null, data)
       }
