@@ -1,7 +1,7 @@
 import * as mongodb from 'mongodb'
 import * as config from 'config'
 
-const options: mongodb.MongoClientOptions = { useUnifiedTopology: true }
+const options: mongodb.MongoClientOptions = { }
 Object.assign(options, config.MONGODB.OPTIONS)
 export const client = new mongodb.MongoClient(config.MONGODB.URL, options)
 client.connect().then(() => {

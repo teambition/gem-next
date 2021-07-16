@@ -1,6 +1,6 @@
 import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
-import { Collection as MongodbCollection, Cursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
+import { Collection as MongodbCollection, FindCursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { transform } from './util'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
