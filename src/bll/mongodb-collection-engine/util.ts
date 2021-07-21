@@ -52,15 +52,18 @@ export function decodeBsonValue(value: any): any {
 
   const tov = typeof value // type of value
   if (['string', 'number', 'boolean'].includes(tov)) return value
+
   const keys = Object.keys(value)
+  const objKey = Object.keys(value)[0]
   assert.equal(keys.length, 1)
-  assert.equal(keys[0][0], '$')
-  const dataType = keys[0].slice(1)
-  if (dataType === 'date') {
+  // assert.equal(keys[0][0], '$')
+  // const dataType = keys[0].slice(1)
+  if (objKey === '$date') {
+    value = value[objKey]
     assert.ok(isFinite(new Date(value).getTime()))
     return new Date(value)
   }
-  throw new Error(`invalid action $${dataType}`)
+  throw new Error(`invalid action ${objKey}`)
 }
 
 export function decodeBsonQuery(query: any): any {
