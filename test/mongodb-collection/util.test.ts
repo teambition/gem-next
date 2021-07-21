@@ -34,8 +34,8 @@ describe('mongodb-collection-engine/util', () => {
       })
     }
     decodeBsonQueryTest('emptyObj', {}, {})
-    decodeBsonQueryTest('{key:value}', {a: 'b'}, {$and: [{a: {$eq: 'b'}}]})
-    decodeBsonQueryTest('{key:value, ...}', {a: 'b', c: 'd', e: null}, {"$and":[{"a":{"$eq":"b"}},{"c":{"$eq":"d"}},{"e":{"$eq":null}}]})
+    decodeBsonQueryTest('{key:value}', {a: 'b'}, {$and: [{'cf:a': {$eq: 'b'}}]})
+    decodeBsonQueryTest('{key:value, ...}', {a: 'b', c: 'd', e: null}, {"$and":[{"cf:a":{"$eq":"b"}},{"cf:c":{"$eq":"d"}},{"cf:e":{"$eq":null}}]})
   })
 
 })

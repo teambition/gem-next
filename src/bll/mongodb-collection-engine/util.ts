@@ -1,4 +1,5 @@
 import { strict as assert } from 'assert'
+import { ObjectId } from 'mongodb'
 import { RecordData } from '../../interface/record'
 
 const INTERNAL_KEYS = ['id', 'createTime', 'updateTime']
@@ -65,7 +66,17 @@ export function decodeBsonValue(value: any): any {
   throw new Error(`invalid action ${objKey}`)
 }
 
-export function decodeBsonQuery(query: any): any {
+export function decodeField(key: string) {
+  if (key === 'id') return '_id'
+  if (INTERNAL_KEYS.includes(key)) return key
+  return 'cf:' + key
+}
+
+// export function decodeObjectIdValue(value: string) {
+//   return new ObjectId(value)
+// }
+
+export function decodeBsonQuery(query: Record<string, any> = {}): any {
   // field: {$gt: {$date: '2020-01-1'}}
   // field: 1
   // field: {$eq: 1}
@@ -95,7 +106,11 @@ export function decodeBsonQuery(query: any): any {
     // TODO: assert op match value type ($in/$nin should follow array)
 
     result.$and = result.$and || []
-    result.$and.push({ [key]: { [op]: value } })
+    const field = decodeField(key)
+
+    // special field value format for _id
+    if (field === '_id') value = new ObjectId(value)
+    result.$and.push({ [field]: { [op]: value } })
   }
 
   return result
@@ -135,12 +150,13 @@ export function decodeBsonUpdate(cond: any): any {
     }
 
     const one: any = result[op] = result[op] || {}
+    const field = 'cf:' + key
 
     // addToSet need '$each' as modifier
     if (op === '$addToSet') {
-      one[key] = { $each: value }
+      one[field] = { $each: value }
     } else {
-      one[key] = value
+      one[field] = value
     }
   }
   return result

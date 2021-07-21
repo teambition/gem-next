@@ -2,7 +2,7 @@ import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
 import { Collection as MongodbCollection, FindCursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
 import { RecordData } from '../../interface/record'
-import { transform } from './util'
+import { transform, decodeBsonQuery } from './util'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
 
@@ -10,7 +10,6 @@ const pipelinePromise = promisify(pipeline)
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
   private dbClient: MongoClient
-  private reservedKeys = ['id', 'createTime', 'updateTime']
   constructor(options: { dbClient?: MongoClient } = {}) {
     this.dbClient = options.dbClient || dbClient
   }
@@ -24,19 +23,14 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
   }
 
   async query({ filter, sort, spaceId, entityId, limit, skip = 0 }: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
-    // TODO: it is unsafe to use user's filter as mongo query condition directly
-    filter = filter || {}
-    const filterData = Object.keys(filter).reduce<Record<string, any>>((r, k) => {
-      const value = filter[k]
-      k = this.reservedKeys.includes(k) ? k : `cf:${k}`
-      // TODO: value should be decode from bson
-      return Object.assign(r, {[k]: value})
-    }, {})
-    const conds = Object.assign(filterData, {
+    // filter transform to mongo query condition
+    let conds = decodeBsonQuery(filter || {})
+    conds = Object.assign({
       spaceId,
       entityId,
-    })
+    }, conds)
     const cursor = this.collection.find(conds)
+
     // TODO: this is unsafe to use user's sort as mongo sort directly
     if (sort) {
       cursor.sort(Object.keys(sort).reduce<Record<string, any>>((r, k) => {
@@ -48,7 +42,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (skip) cursor.skip(skip)
     if (limit) cursor.limit(limit)
 
-    // TODO: cursor has invalid Schema for RecordData should be transform in a pipe
+    // cursor transform to RecordData
     return this.stream(cursor)
   }
 
