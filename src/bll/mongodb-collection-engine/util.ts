@@ -21,7 +21,6 @@ const MANIPULDATE_OPS = [
   '$inc',
 ]
 
-
 export function transform(doc: any): RecordData {
   return {
     id: String(doc._id),
@@ -73,38 +72,30 @@ export function decodeBsonQuery(query: any): any {
   // field: [1]
   // field: {$date: '2021-12-03'}
   // field: [{$date: '2021-12-03'}]
-  const result = { $and: [], $or: [] }
+  const result: any = { }
   for (const key in query) {
     let value = query[key]
     if (key === '$and' || key === '$or') {
       assert.ok(Array.isArray(value))
       const arrays = query[key].map(child => decodeBsonQuery(child))
+      result[key] = result[key] || []
       result[key].push(...arrays)
       continue
     }
 
     let op = '$eq'
     if (typeof value === 'object' && !Array.isArray(value)) {
-      let objKey = Object.keys(value)[0]
+      let objKey = value && Object.keys(value)[0]
       if (QUERY_OPS.includes(objKey)) {
         op = objKey
         value = value[objKey]
       }
-      // assert.ok(QUERY_OPS.includes(op))
-      // TODO: maybe value directly
-      // value = value[op]
-      // if (Array.isArray(value)) {
-      //   value = value.map(decodeBsonValue(value))
-      // } else {
-      // value = decodeBsonValue(value)
-      // }
-      // TODO: assert op match value type ($in/$nin should follow array)
-    // } else {
     }
     value = decodeBsonValue(value)
-    // }
+    // TODO: assert op match value type ($in/$nin should follow array)
+
+    result.$and = result.$and || []
     result.$and.push({ [key]: { [op]: value } })
-    // value.$eq
   }
 
   return result
