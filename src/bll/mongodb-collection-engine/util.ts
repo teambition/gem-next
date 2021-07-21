@@ -13,6 +13,14 @@ const QUERY_OPS = [
   '$nin',
   '$like',
 ]
+const MANIPULDATE_OPS = [
+  '$addToSet', // { $addToSet: { field: { $each: [] } } }
+  '$pull', // { $pullAll: {field: [] } }
+  '$set',
+  '$unset',
+  '$inc',
+]
+
 
 export function transform(doc: any): RecordData {
   return {
@@ -33,6 +41,12 @@ export function transform(doc: any): RecordData {
 }
 
 export function decodeBsonValue(value: any): any {
+  // string: 'abc'
+  // number: 12 4.5
+  // boolean: true, false
+  // date: { $date: '2015-01-23T04:56:17.893Z' }
+  // array: ['abc', 12, 4.5, false, { $date: '2015-01-23T04:56:17.893Z' }]
+
   if (value === undefined || value === null) return value
   if (Array.isArray(value)) return value.map(v => decodeBsonValue(v))
 
@@ -50,74 +64,90 @@ export function decodeBsonValue(value: any): any {
 }
 
 export function decodeBsonQuery(query: any): any {
-  const result: any = { $and: [] }
-  for (let key in query) {
+  // field: {$gt: {$date: '2020-01-1'}}
+  // field: 1
+  // field: {$eq: 1}
+  // field: [1]
+  // field: {$date: '2021-12-03'}
+  // field: [{$date: '2021-12-03'}]
+  const result = { $and: [], $or: [] }
+  for (const key in query) {
     let value = query[key]
     if (key === '$and' || key === '$or') {
       assert.ok(Array.isArray(value))
-      result[key] = query[key].map(child => decodeBsonQuery(child))
+      const arrays = query[key].map(child => decodeBsonQuery(child))
+      result[key].push(...arrays)
       continue
     }
 
     let op = '$eq'
     if (typeof value === 'object' && !Array.isArray(value)) {
-      op = Object.keys(value)[0]
-      assert.ok(QUERY_OPS.includes(op))
-      // TODO: maybe value directly
-      value = value[op]
-      if (Array.isArray(value)) {
-        value = value.map(decodeBsonValue(value))
-      } else {
-        value = decodeBsonValue(value)
+      let objKey = Object.keys(value)[0]
+      if (QUERY_OPS.includes(objKey)) {
+        op = objKey
+        value = value[objKey]
       }
+      // assert.ok(QUERY_OPS.includes(op))
+      // TODO: maybe value directly
+      // value = value[op]
+      // if (Array.isArray(value)) {
+      //   value = value.map(decodeBsonValue(value))
+      // } else {
+      // value = decodeBsonValue(value)
+      // }
       // TODO: assert op match value type ($in/$nin should follow array)
-    } else {
-      value = decodeBsonValue(value)
+    // } else {
     }
+    value = decodeBsonValue(value)
+    // }
     result.$and.push({ [key]: { [op]: value } })
     // value.$eq
   }
+
   return result
-  // key: {$gt: {$date: '2020-01-1'}}
-  // key: 1
-  // key: {$eq: 1}
-  // key: [1]
-  // key: {$date: '2021-12-03'}
-  // key: [{$date: '2021-12-03'}]
 }
 
 export function decodeBsonUpdate(cond: any): any {
-
-  // key: {$gt: {$date: '2020-01-1'}}
   // key: {$unset: 1}
   // key: 1
   // key: {$date: '2021-12-03'}
   // key: {$addSet: 'abc'}
-  // key: {$addSetEach: ['abc']}
   // key: ['abc']
   // key: {$set: ['abc']}
-
   // const result = 
-  let key
-  let value = cond[key]
-  let op = 'set'
-  if (Array.isArray(value)) {
-    value = decodeBsonValue(value)
-  }
-  if (typeof value === 'object') {
-    const keys = Object.keys(value)
-    assert.equal(keys.length, 1)
-    const key2 = keys[0]
-    const val2 = value[key2]
-    assert.equal(key2[0], '$')
-    let op = key2.slice(1)
-    switch (op) {
-      case 'set':
-      case 'unset':
-      case 'addSet':
-      case 'addSetEach':
-      default:
-        op = 'set'
+  const result: any = {}
+
+  for (const key in cond) {
+    let value = cond[key]
+    let op = '$set'
+
+    if (typeof value === 'object' && !Array.isArray(value)) {
+      let objKey = Object.keys(value)[0]
+      if (MANIPULDATE_OPS.includes(objKey)) {
+        op = objKey
+        value = value[objKey]
+      }
+      value = decodeBsonValue(value)
+    }
+
+    // addToSet and pull need a value of array
+    if ((op === '$addToSet' || op === '$pull') && !Array.isArray(value)) {
+      value = [value]
+    }
+
+    // mongodb need pullAll insteadof pull
+    if (op === '$pull') {
+      op = '$pullAll'
+    }
+
+    const one: any = result[op] = result[op] || {}
+
+    // addToSet need '$each' as modifier
+    if (op === '$addToSet') {
+      one[key] = { $each: value }
+    } else {
+      one[key] = value
     }
   }
+  return result
 }
