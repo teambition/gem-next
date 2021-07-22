@@ -12,11 +12,11 @@ export interface UpdateRecord {
   id: string
   spaceId: string
   entityId: string
+  update: any
   removeLabels?: string[]
   setLabels?: string[]
   addLabels?: string[]
   options?: any
-  cf: RecordCustomfieldMap
 }
 
 export interface RemoveRecord {
@@ -33,6 +33,6 @@ export interface RemoveRecord {
 export interface RecordStorageBll {
   create(createRecord: CreateRecord): Promise<RecordData>
   // list(listRecord: ListRecord): Promise<QueryResult<Record>>
-  update(updateRecord: UpdateRecord): Promise<RecordData>
+  update(updateRecord: UpdateRecord): Promise<boolean>
   remove(removeRecord: RemoveRecord): Promise<boolean>
 }

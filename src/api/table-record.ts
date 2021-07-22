@@ -21,6 +21,21 @@ interface RecordCreateRequest {
   }
 }
 
+interface RecordUpdateRequest {
+  spaceId: string
+  entityId: string
+  id: string
+  update: {
+    [x: string]: any
+  }
+}
+
+interface RecordRemoveRequest {
+  spaceId: string
+  entityId: string
+  id: string
+}
+
 // @controller('/record')
 @after(async ctx => {
   console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
@@ -75,9 +90,32 @@ export class TableRecordAPI {
   @post('/create')
   async create ({ spaceId, entityId, cf }: RecordCreateRequest) {
     const resp = await this.recordBll.create({
+      spaceId,
+      entityId,
+      cf,
+    })
+
+    return resp
+  }
+
+  @post('/update')
+  async update ({ spaceId, entityId, id, update }: RecordUpdateRequest) {
+    const resp = await this.recordBll.update({
       spaceId: spaceId,
       entityId: entityId,
-      cf: cf,
+      id: id,
+      update: update,
+    })
+
+    return resp
+  }
+
+  @post('/remove')
+  async remove ({ spaceId, entityId, id }: RecordRemoveRequest) {
+    const resp = await this.recordBll.remove({
+      spaceId: spaceId,
+      entityId: entityId,
+      id: id,
     })
 
     return resp

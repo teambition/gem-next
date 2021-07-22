@@ -1,8 +1,8 @@
-import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase } from 'mongodb'
+import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, ObjectId } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 import dbClient from '../../service/mongodb'
-import { transform } from './util'
+import { decodeBsonUpdate, transform } from './util'
 
 export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   private dbClient: MongoClient
@@ -42,11 +42,28 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     doc.id = String(resp.insertedId)
     return transform(doc)
   }
-  async update(updateRecord: UpdateRecord): Promise<RecordData> {
-    throw new Error('Not Implemented')
+
+  async update(updateRecord: UpdateRecord): Promise<boolean> {
+    const { id, spaceId, entityId, update } = updateRecord
+    const recordUpdate = decodeBsonUpdate(update)
+    recordUpdate.$set = recordUpdate.$set || {}
+    recordUpdate.$set.updateTime = new Date()
+    const resp = await this.collection.updateOne({
+      _id: new ObjectId(id),
+      spaceId,
+      entityId,
+    }, recordUpdate)
+    return resp.modifiedCount > 0
   }
+
   async remove(removeRecord: RemoveRecord): Promise<boolean> {
-    throw new Error('Not Implemented')
+    const { id, spaceId, entityId } = removeRecord
+    const resp = await this.collection.deleteOne({
+      _id: new ObjectId(id),
+      spaceId,
+      entityId,
+    })
+    return resp.deletedCount > 0
   }
 }
 

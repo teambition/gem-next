@@ -20,7 +20,7 @@ export class RecordBllImpl implements RecordStorageBll, RecordQueryBll<any, any>
     return this.recordStorageBll.create(createRecord)
   }
 
-  async update(updateRecord: UpdateRecord): Promise<RecordData> {
+  async update(updateRecord: UpdateRecord): Promise<boolean> {
     // TODO: get query.entityId and find entity
     // TODO: get entity.engineId and find engine
     // TODO: get engineClass Info get queryEngine or storageEngine
