@@ -82,5 +82,3 @@ export class RecordAPI {
     return resp
   }
 }
-
-export default new RecordAPI()

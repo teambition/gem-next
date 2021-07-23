@@ -10,11 +10,11 @@ TODO
 ## Roadmap
 
 ## API
-- create
-- update
-- remove
-- query
-
+- POST /api/record/create
+- POST /api/record/update
+- POST /api/record/remove
+- POST /api/record/query
+- POST /api/record/query-array
 
 ## Reference
 - https://www.mongodb.com/presentations/managing-multitenant-saas-applications-at-scale

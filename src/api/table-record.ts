@@ -119,5 +119,3 @@ export class TableRecordAPI {
     return resp
   }
 }
-
-export default new TableRecordAPI()
