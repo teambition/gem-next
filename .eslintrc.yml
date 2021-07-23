@@ -13,12 +13,14 @@ extends:
 rules:
   semi: [error, never]
   require-yield: [off]
-  no-unused-vars: [warn]
+  no-unused-vars: [off]
   dot-notation: warn
   comma-dangle: [off, always]
   array-bracket-spacing: [off]
   object-curly-spacing: [off]
   no-multiple-empty-lines: [warn]
+  func-call-spacing: [error, never]
+  space-before-function-paren: [warn, never]
   '@typescript-eslint/no-var-requires': [off]
   '@typescript-eslint/no-this-alias': [off]
   '@typescript-eslint/explicit-module-boundary-types': [off]

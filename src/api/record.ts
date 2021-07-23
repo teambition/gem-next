@@ -1,6 +1,5 @@
 import { } from 'koa'
-// import { promisify } from 'util'
-import { Readable, Transform, pipeline } from 'stream'
+import { Transform } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
 import { after, before, controller, post, responseStream, validator } from '../http-server/decorator'
@@ -48,7 +47,7 @@ export class RecordAPI {
       }
     })
   })
-  async query ({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
+  async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,
       entityId,
@@ -62,7 +61,7 @@ export class RecordAPI {
   }
 
   @post('/query-array')
-  async queryArray (request: RecordQueryRequest) {
+  async queryArray(request: RecordQueryRequest) {
     const resp = await this.query(request)
     const result = []
     for await (const doc of resp) {
@@ -73,7 +72,7 @@ export class RecordAPI {
   }
 
   @post('/create')
-  async create ({ spaceId, entityId, cf }: RecordCreateRequest) {
+  async create({ spaceId, entityId, cf }: RecordCreateRequest) {
     const resp = await this.recordBll.create({
       spaceId: spaceId,
       entityId: entityId,

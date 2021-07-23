@@ -48,7 +48,7 @@ export class TableRecordAPI {
   }
 
   @post('/query')
-  async query ({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
+  async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,
       entityId,
@@ -67,7 +67,7 @@ export class TableRecordAPI {
   }
 
   @post('/query-array')
-  async queryArray ({ spaceId, entityId, limit, skip, sort, filter }: RecordQueryRequest) {
+  async queryArray({ spaceId, entityId, limit, skip, sort, filter }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,
       entityId,
@@ -86,7 +86,7 @@ export class TableRecordAPI {
   }
 
   @post('/create')
-  async create ({ spaceId, entityId, cf }: RecordCreateRequest) {
+  async create({ spaceId, entityId, cf }: RecordCreateRequest) {
     const resp = await this.recordBll.create({
       spaceId,
       entityId,
@@ -97,7 +97,7 @@ export class TableRecordAPI {
   }
 
   @post('/update')
-  async update ({ spaceId, entityId, id, update }: RecordUpdateRequest) {
+  async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
     const resp = await this.recordBll.update({
       spaceId: spaceId,
       entityId: entityId,
@@ -109,7 +109,7 @@ export class TableRecordAPI {
   }
 
   @post('/remove')
-  async remove ({ spaceId, entityId, id }: RecordRemoveRequest) {
+  async remove({ spaceId, entityId, id }: RecordRemoveRequest) {
     const resp = await this.recordBll.remove({
       spaceId: spaceId,
       entityId: entityId,
