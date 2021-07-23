@@ -59,7 +59,7 @@ interface RouteMeta {
 const controllerMap = new Map<ControllerConstructor, ControllerMeta>()
 // const controllers: ControllerMeta[] = []
 
-export function controller(prefix: string = '/') {
+export function controller(prefix = '/') {
   return (constructor: ControllerConstructor) => {
     debug('@controller', prefix)
     if (!controllerMap.has(constructor)) {

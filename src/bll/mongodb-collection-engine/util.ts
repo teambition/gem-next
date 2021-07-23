@@ -96,7 +96,7 @@ export function decodeBsonQuery(query: Record<string, any> = {}): any {
 
     let op = '$eq'
     if (typeof value === 'object' && !Array.isArray(value)) {
-      let objKey = value && Object.keys(value)[0]
+      const objKey = value && Object.keys(value)[0]
       if (QUERY_OPS.includes(objKey)) {
         op = objKey
         value = value[objKey]
@@ -131,7 +131,7 @@ export function decodeBsonUpdate(cond: any): any {
     let op = '$set'
 
     if (typeof value === 'object' && !Array.isArray(value)) {
-      let objKey = Object.keys(value)[0]
+      const objKey = Object.keys(value)[0]
       if (MANIPULDATE_OPS.includes(objKey)) {
         op = objKey
         value = value[objKey]

@@ -36,7 +36,7 @@ interface RecordRemoveRequest {
   id: string
 }
 
-// @controller('/record')
+// @controller('/table-record')
 @after(async ctx => {
   console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
 })
@@ -48,8 +48,6 @@ export class TableRecordAPI {
   }
 
   @post('/query')
-  @before(async (ctx) => {})
-  // @validator({})
   async query ({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,

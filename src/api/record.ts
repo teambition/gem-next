@@ -38,7 +38,6 @@ export class RecordAPI {
   }
 
   @post('/query')
-  @before(async (ctx) => {})
   @responseStream(() => {
     return new Transform({
       // readableObjectMode: true,

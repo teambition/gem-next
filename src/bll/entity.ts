@@ -60,7 +60,7 @@ export class EntityBllImpl implements EntityBll {
 
     //   }
     // }, { returnDocument: 'after' })
-    throw new Error('Method not implemented.');
+    throw new Error('Method not implemented.')
   }
   async remove(removeEntity: RemoveEntity): Promise<boolean> {
     const resp = await this.collection.updateOne({

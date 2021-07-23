@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nodemon -w src -w config -e ts,js,yml,json -x ts-node src/app",
     "test": "mocha",
+    "lint": "eslint src",
     "test:coverage": "nyc mocha"
   },
   "author": "",
@@ -18,6 +19,7 @@
     "@types/koa-router": "^7.4.4",
     "@types/mocha": "^8.2.3",
     "@types/mongodb": "^3.6.20",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
     "eslint": "^7.31.0",
     "mocha": "^9.0.2",
     "nodemon": "^2.0.12",
