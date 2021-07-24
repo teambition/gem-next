@@ -1,4 +1,5 @@
 import 'mocha'
+import * as _ from 'lodash'
 import { strict as assert } from 'assert'
 import * as mceUtil from '../../src/bll/mongodb-collection-engine/util'
 
@@ -40,6 +41,51 @@ describe('mongodb-collection-engine/util', () => {
       {"cf:c":{"$eq":"d"}},
       {"cf:e":{"$eq":null}},
     ]})
+    decodeBsonQueryTest('{key:{$ne: value}}', {a: {$ne: 'b'}}, {$and: [{'cf:a': {$ne: 'b'}}]})
+    decodeBsonQueryTest('{key:{$gt: value}}', {a: {$gt: 'b'}}, {$and: [{'cf:a': {$gt: 'b'}}]})
+    decodeBsonQueryTest('{key:{$lt: value}}', {a: {$lt: 'b'}}, {$and: [{'cf:a': {$lt: 'b'}}]})
+    decodeBsonQueryTest('{key:{$gte: value}}', {a: {$gte: 'b'}}, {$and: [{'cf:a': {$gte: 'b'}}]})
+    decodeBsonQueryTest('{key:{$lte: value}}', {a: {$lte: 'b'}}, {$and: [{'cf:a': {$lte: 'b'}}]})
+    decodeBsonQueryTest('{key:{$in: [value]}}', {a: {$in: ['b']}}, {$and: [{'cf:a': {$in: ['b']}}]})
+    decodeBsonQueryTest('{key:{$nin: [value]}}', {a: {$nin: ['b']}}, {$and: [{'cf:a': {$nin: ['b']}}]})
+    decodeBsonQueryTest('{key:{$like: value}}', {a: {$like: 'b'}}, {$and: [{'cf:a': {$regex: 'b'}}]})
+    decodeBsonQueryTest('{$and: [{key:value}]}', {$and: [{a: 'b'}]}, {$and: [{$and: [{'cf:a': {$eq: 'b'}}]}]})
+    decodeBsonQueryTest('{$or: [{key:value}]}', {$or: [{a: 'b'}]}, {$or: [{$and: [{'cf:a': {$eq: 'b'}}]}]})
+
+    // id or date test should not use deep equal ...
+    // decodeBsonQueryTest('{id:value}', {id: '123456789012345678901234'}, {$and: [{_id: {$eq: '123456789012345678901234'}}]})
   })
 
+  describe('decodeBsonUpdate', () => {
+    function decodeBsonUpdateTest (type: string, query: any, expect: any) {
+      it(`util.decodeBsonUpdate(${type})`, () => {
+        const result = mceUtil.decodeBsonUpdate(query)
+        assert.deepEqual(result, expect)
+      })
+    }
+    decodeBsonUpdateTest('{key:value}', {a: 'b'}, {$set: {'cf:a': 'b'}})
+    decodeBsonUpdateTest('{key:{$set: value}}', {a: {$set: 'b'}}, {$set: {'cf:a': 'b'}})
+    decodeBsonUpdateTest('{key:{$addToSet: value}}', {a: {$addToSet: 'b'}}, {$addToSet: {'cf:a': {$each: ['b']}}})
+    decodeBsonUpdateTest('{key:{$pull: value}}', {a: {$pull: 'b'}}, {$pullAll: {'cf:a': ['b']}})
+
+  })
+  describe('transform', () => {
+    it('transform()', () => {
+      const result = mceUtil.transform({
+        _id: 'abc',
+        spaceId: 's1',
+        entityId: 'e1',
+        'cf:abc': 123,
+        'cf:def': 'def',
+      })
+      assert.ok(result)
+      assert.equal(result.id, 'abc')
+      assert.equal(result.spaceId, 's1')
+      assert.equal(result.entityId, 'e1')
+      assert.deepEqual(result.cf, {
+        abc: 123,
+        def: 'def',
+      })
+    })
+  })
 })

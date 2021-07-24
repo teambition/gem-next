@@ -110,6 +110,7 @@ export function decodeBsonQuery(query: Record<string, any> = {}): any {
 
     // special field value format for _id
     if (field === '_id') value = new ObjectId(value)
+    if (op === '$like') op = '$regex'
     result.$and.push({ [field]: { [op]: value } })
   }
 
