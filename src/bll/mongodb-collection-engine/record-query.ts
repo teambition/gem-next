@@ -55,7 +55,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       }
     })
     // cursor.pipe(transform)
-    pipelinePromise(cursor, result).catch(err => {
+    pipelinePromise(cursor.stream(), result).catch(err => {
       console.error(err)
       result.emit('error', err)
     })
