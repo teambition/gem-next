@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
     "dev": "nodemon -w src -w config -e ts,js,yml,json -x ts-node src/app",
     "test": "mocha",
     "lint": "eslint src",

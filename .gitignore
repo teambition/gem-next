@@ -5,3 +5,4 @@
 /config/local*
 /config/dev*
 /debug
+/lib
