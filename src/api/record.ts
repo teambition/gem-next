@@ -24,6 +24,21 @@ interface RecordCreateRequest {
   }
 }
 
+interface RecordUpdateRequest {
+  spaceId: string
+  entityId: string
+  id: string
+  update: {
+    [x: string]: any
+  }
+}
+
+interface RecordRemoveRequest {
+  spaceId: string
+  entityId: string
+  id: string
+}
+
 // const pipelinePromise = promisify(pipeline)
 
 @controller('/record')
@@ -84,6 +99,29 @@ export class RecordAPI {
       spaceId: spaceId,
       entityId: entityId,
       cf: cf,
+    })
+
+    return resp
+  }
+
+  @post('/update')
+  async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
+    const resp = await this.recordBll.update({
+      spaceId: spaceId,
+      entityId: entityId,
+      id: id,
+      update: update,
+    })
+
+    return resp
+  }
+
+  @post('/remove')
+  async remove({ spaceId, entityId, id }: RecordRemoveRequest) {
+    const resp = await this.recordBll.remove({
+      spaceId: spaceId,
+      entityId: entityId,
+      id: id,
     })
 
     return resp
