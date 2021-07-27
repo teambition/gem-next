@@ -56,9 +56,6 @@ interface BatchRequest {
   const { spaceId, entityId } = ctx.request.body as any
   recordAuthBll.verify({ spaceId, entityId, token })
 })
-@after(async ctx => {
-  console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
-})
 export class RecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 
