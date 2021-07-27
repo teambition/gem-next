@@ -2,8 +2,9 @@ import { } from 'koa'
 import { Transform } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, post, responseStream, validator } from '../http-server/decorator'
+import { after, before, controller, middleware, post, responseStream, validator } from '../http-server/decorator'
 import recordBll from '../bll/record'
+import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
 
 interface RecordQueryRequest {
@@ -26,6 +27,12 @@ interface RecordCreateRequest {
 // const pipelinePromise = promisify(pipeline)
 
 @controller('/record')
+@before(async (ctx) => {
+  let token = ctx.get('authorization') as string || ''
+  token = token.replace(/^Bearer /, '')
+  const { spaceId, entityId } = ctx.request.body as any
+  recordAuthBll.verify({ spaceId, entityId, token })
+})
 @after(async ctx => {
   console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
 })

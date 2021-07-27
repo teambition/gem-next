@@ -20,7 +20,7 @@ rules:
   object-curly-spacing: [off]
   no-multiple-empty-lines: [warn]
   func-call-spacing: [error, never]
-  space-before-function-paren: [warn, never]
+  space-before-function-paren: [off, never]
   '@typescript-eslint/no-var-requires': [off]
   '@typescript-eslint/no-this-alias': [off]
   '@typescript-eslint/explicit-module-boundary-types': [off]

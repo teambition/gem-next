@@ -5,7 +5,7 @@ import * as KoaRouter from 'koa-router'
 import * as Debug from 'debug'
 
 const pipelinePromise = promisify(pipeline)
-const debug = Debug('koa:decorator')
+const debug = Debug('koa:controller')
 
 interface Controller {
 }
@@ -232,6 +232,7 @@ export function getRouter(prefix = '/') {
 
       // define data middleware
       middlewares.push(async (ctx, next) => {
+        debug('running define state data')
         ctx.state = Object.assign({}, ctx.params, ctx.query, ctx.request.body)
         const data = Object.keys(methodMeta.params).reduce((result, key) => {
           const paramDefinition = methodMeta.params[key]
@@ -253,10 +254,13 @@ export function getRouter(prefix = '/') {
       // before after middlewares
       middlewares.push(async (ctx, next) => {
         for (const before of methodMeta.befores) {
+          debug('running method before')
           await before(ctx)
         }
+        debug('running method function')
         await next()
         for (const after of methodMeta.afters) {
+          debug('running method after')
           await after(ctx)
         }
       })
@@ -284,10 +288,13 @@ export function getRouter(prefix = '/') {
     // before after middlewares
     middlewares.push(async (ctx, next) => {
       for (const before of controllerMeta.befores) {
+        debug('running controller before')
         await before(ctx)
       }
+      debug('running controller')
       await next()
       for (const after of controllerMeta.afters) {
+        debug('running controller after')
         await after(ctx)
       }
     })
