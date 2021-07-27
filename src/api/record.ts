@@ -1,4 +1,4 @@
-import { } from 'koa'
+import { Context } from 'koa'
 import { Transform } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
@@ -6,6 +6,7 @@ import { after, before, controller, middleware, post, responseStream, validator 
 import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
+import { method } from 'lodash'
 
 interface RecordQueryRequest {
   spaceId: string
@@ -39,6 +40,13 @@ interface RecordRemoveRequest {
   id: string
 }
 
+type BatchAction = { method: string } & RecordQueryRequest & RecordCreateRequest & RecordUpdateRequest & RecordRemoveRequest
+
+interface BatchRequest {
+  spaceId: string
+  entityId: string
+  actions: BatchAction[]
+}
 // const pipelinePromise = promisify(pipeline)
 
 @controller('/record')
@@ -90,40 +98,58 @@ export class RecordAPI {
       result.push(doc)
     }
 
-    return result
+    return { result }
   }
 
   @post('/create')
   async create({ spaceId, entityId, cf }: RecordCreateRequest) {
-    const resp = await this.recordBll.create({
+    const result = await this.recordBll.create({
       spaceId: spaceId,
       entityId: entityId,
       cf: cf,
     })
 
-    return resp
+    return { result }
   }
 
   @post('/update')
   async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
-    const resp = await this.recordBll.update({
+    const result = await this.recordBll.update({
       spaceId: spaceId,
       entityId: entityId,
       id: id,
       update: update,
     })
 
-    return resp
+    return { result }
   }
 
   @post('/remove')
   async remove({ spaceId, entityId, id }: RecordRemoveRequest) {
-    const resp = await this.recordBll.remove({
+    const result = await this.recordBll.remove({
       spaceId: spaceId,
       entityId: entityId,
       id: id,
     })
 
-    return resp
+    return { result }
+  }
+
+  @post('/batch')
+  async batch({ spaceId, entityId, actions }: BatchRequest) {
+    const result = await Promise.all(actions.map(async action => {
+      try {
+        switch (action.method) {
+          case 'create': return await this.create({ ...action, entityId, spaceId })
+          case 'update': return await this.update({ ...action, entityId, spaceId })
+          case 'remove': return await this.remove({ ...action, entityId, spaceId })
+          case 'queryArray': return await this.queryArray({ ...action, entityId, spaceId })
+          default: throw new Error('invalid method: ' + action.method)
+        }
+      } catch (e) {
+        return { status: e.status || 500, error: e.message }
+      }
+    }))
+    return { result }
   }
 }
