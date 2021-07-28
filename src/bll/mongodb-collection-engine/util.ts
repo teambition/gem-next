@@ -22,7 +22,11 @@ const MANIPULDATE_OPS = [
   '$inc',
 ]
 
-export function transform(doc: any): RecordData {
+interface TransformOptions {
+  encodeBson?: boolean
+}
+
+export function transform(doc: any, options: TransformOptions = {}): RecordData {
   return {
     id: String(doc._id),
     spaceId: String(doc.spaceId),
@@ -34,7 +38,9 @@ export function transform(doc: any): RecordData {
       .filter(key => /^cf:/.test(key))
       .reduce<{[x: string]: any}>((result, key) => {
         const cfKey = key.slice(3) // omit 'cf:'
-        Object.assign(result, {[cfKey]: doc[key]})
+        let value = doc[key]
+        if (options.encodeBson) value = encodeBsonValue(value)
+        Object.assign(result, {[cfKey]: value})
         return result
       }, {})
   }
@@ -64,6 +70,18 @@ export function decodeBsonValue(value: any): any {
     return new Date(value)
   }
   throw new Error(`invalid action ${objKey}`)
+}
+
+export function encodeBsonValue(value: any): any {
+  if (value === undefined || value === null) return value
+  if (Array.isArray(value)) return value.map(v => encodeBsonValue(v))
+
+  const tov = typeof value
+  if (['string', 'number', 'boolean'].includes(tov)) return value
+  if (value instanceof Date) {
+    return { $date: value.toISOString() }
+  }
+  throw new Error(`invalid value to encode: ${value}`)
 }
 
 export function decodeField(key: string) {

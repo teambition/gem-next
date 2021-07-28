@@ -1,11 +1,15 @@
 import { Context } from 'koa'
-import { Transform } from 'stream'
+import { promisify } from 'util'
+import { Transform, pipeline } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, middleware, post, responseStream, validator } from '../http-server/decorator'
+import { after, before, controller, middleware, MiddlewareFn, post, validator } from '../http-server/decorator'
 import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
+import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
+
+const pipelinePromise = promisify(pipeline)
 
 interface RecordQueryRequest {
   spaceId: string
@@ -48,6 +52,12 @@ interface BatchRequest {
 }
 // const pipelinePromise = promisify(pipeline)
 
+export function resultMW(): MiddlewareFn {
+  return async (ctx) => {
+    ctx.body = { result: ctx.body }
+  }
+}
+
 @controller('/api/record')
 @before(async (ctx) => {
   let token = ctx.get('authorization') as string || ''
@@ -63,14 +73,23 @@ export class RecordAPI {
   }
 
   @post('/query')
-  @responseStream(() => {
-    return new Transform({
+  @after(async (ctx) => {
+    const origin: AsyncIterable<RecordData> = ctx.body as any
+    const target = new Transform({
       // readableObjectMode: true,
       objectMode: true,
       transform(record: RecordData, _, cb) {
+        record = {...record, cf: Object.keys(record.cf).reduce((cf, key) => {
+          cf[key] = encodeBsonValue(record.cf[key])
+          return cf
+        }, {})}
         const data = JSON.stringify(record) + '\n'
         cb(null, data)
       }
+    })
+    ctx.body = target
+    pipelinePromise(origin, target).catch(err => {
+      console.error(err)
     })
   })
   async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
@@ -87,28 +106,39 @@ export class RecordAPI {
   }
 
   @post('/query-array')
+  @after(async (ctx) => {
+    const records = ctx.body as RecordData[]
+    ctx.body = records.map(record => {
+      return {...record, cf: Object.keys(record.cf).reduce((cf, key) => {
+        cf[key] = encodeBsonValue(record.cf[key])
+        return cf
+      }, {})}
+    })
+  })
+  @after(resultMW())
   async queryArray(request: RecordQueryRequest) {
     const resp = await this.query(request)
-    const result = []
+    const records: RecordData[] = []
     for await (const doc of resp) {
-      result.push(doc)
+      records.push(doc)
     }
-
-    return { result }
+    return records
   }
 
   @post('/create')
+  @after(resultMW())
   async create({ spaceId, entityId, cf }: RecordCreateRequest) {
-    const result = await this.recordBll.create({
+    const record = await this.recordBll.create({
       spaceId: spaceId,
       entityId: entityId,
       cf: cf,
     })
 
-    return { result }
+    return record
   }
 
   @post('/update')
+  @after(resultMW())
   async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
     const result = await this.recordBll.update({
       spaceId: spaceId,
@@ -117,10 +147,11 @@ export class RecordAPI {
       update: update,
     })
 
-    return { result }
+    return result
   }
 
   @post('/remove')
+  @after(resultMW())
   async remove({ spaceId, entityId, id }: RecordRemoveRequest) {
     const result = await this.recordBll.remove({
       spaceId: spaceId,
@@ -128,10 +159,11 @@ export class RecordAPI {
       id: id,
     })
 
-    return { result }
+    return result
   }
 
   @post('/batch')
+  @after(resultMW())
   async batch({ spaceId, entityId, actions }: BatchRequest) {
     const result = await Promise.all(actions.map(async action => {
       try {
@@ -146,6 +178,6 @@ export class RecordAPI {
         return { status: e.status || 500, error: e.message }
       }
     }))
-    return { result }
+    return result
   }
 }

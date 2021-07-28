@@ -1,10 +1,7 @@
-import { promisify } from 'util'
-import { Transform, pipeline } from 'stream'
 import { Context, Middleware } from 'koa'
 import * as KoaRouter from 'koa-router'
 import * as Debug from 'debug'
 
-const pipelinePromise = promisify(pipeline)
 const debug = Debug('koa:controller')
 
 interface Controller {
@@ -14,8 +11,8 @@ interface ControllerConstructor extends Function {
   new (): Controller
 }
 
-interface MiddlewareFn {
-  (ctx: Context): Promise<any>
+export interface MiddlewareFn {
+  (ctx: Context): Promise<void>
 }
 
 interface ControllerMeta {
@@ -51,7 +48,6 @@ interface RouteMeta {
   afters: MiddlewareFn[]
   requestStream?: boolean
   responseStream?: boolean
-  responseStreamHandler?: () => Transform
   propertyName: string
   // method: (req: any) => Promise<any>
 }
@@ -105,13 +101,13 @@ export function middleware(middleware: Middleware) {
       // class Decorator
       const constructor: ControllerConstructor = target
       if (!controllerMap.has(constructor)) controller('')(constructor)
-      controllerMap.get(constructor).middlewares.push(middleware)
+      controllerMap.get(constructor).middlewares.unshift(middleware)
     } else {
       // method Decorator
       const constructor: ControllerConstructor = target.constructor
       if (!controllerMap.has(constructor)) controller('')(constructor)
       if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
-      controllerMap.get(constructor).methodMap[propertyName].middlewares.push(middleware)
+      controllerMap.get(constructor).methodMap[propertyName].middlewares.unshift(middleware)
     }
   }
 }
@@ -127,13 +123,13 @@ export function before(beforeFunc: MiddlewareFn) {
       // class Decorator
       const constructor: ControllerConstructor = target
       if (!controllerMap.has(constructor)) controller('')(constructor)
-      controllerMap.get(constructor).befores.push(beforeFunc)
+      controllerMap.get(constructor).befores.unshift(beforeFunc)
     } else {
       // method Decorator
       const constructor: ControllerConstructor = target.constructor
       if (!controllerMap.has(constructor)) controller('')(constructor)
       if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
-      controllerMap.get(constructor).methodMap[propertyName].befores.push(beforeFunc)
+      controllerMap.get(constructor).methodMap[propertyName].befores.unshift(beforeFunc)
     }
   }
 }
@@ -145,13 +141,13 @@ export function after(afterFunc: MiddlewareFn) {
       // class Decorator
       const constructor: ControllerConstructor = target
       if (!controllerMap.has(constructor)) controller('')(constructor)
-      controllerMap.get(constructor).afters.push(afterFunc)
+      controllerMap.get(constructor).afters.unshift(afterFunc)
     } else {
       // method Decorator
       const constructor: ControllerConstructor = target.constructor
       if (!controllerMap.has(constructor)) controller('')(constructor)
       if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
-      controllerMap.get(constructor).methodMap[propertyName].afters.push(afterFunc)
+      controllerMap.get(constructor).methodMap[propertyName].afters.unshift(afterFunc)
     }
   }
 }
@@ -188,18 +184,6 @@ export function get(path = '/') {
 export function post(path = '/') {
   return request('post', path)
 }
-
-export function responseStream(transform: () => Transform) {
-  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
-    const constructor = target.constructor
-    debug('@responseStream')
-    if (!controllerMap.has(constructor)) controller('')(constructor)
-    if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
-    controllerMap.get(constructor).methodMap[propertyName].responseStreamHandler = transform
-    controllerMap.get(constructor).methodMap[propertyName].responseStream = true
-  }
-}
-
 
 function getParamsValue(ctx: Context, paramDefinition: ParamDefinition) {
   const paramPath = paramDefinition.path || 'body'
@@ -266,18 +250,8 @@ export function getRouter(prefix = '') {
       })
 
       // run process
-      middlewares.push(async (ctx, next) => {
-        const result = await controller[methodMeta.propertyName](ctx.state, ctx)
-        if (methodMeta.responseStreamHandler) {
-          const target = methodMeta.responseStreamHandler()
-          ctx.body = target
-          pipelinePromise(result, target).catch(err => {
-            console.error(err)
-          })
-        } else {
-          ctx.body = result
-        }
-        return next()
+      middlewares.push(async (ctx) => {
+        ctx.body = await controller[methodMeta.propertyName](ctx.state, ctx)
       })
 
       controllerRouter.register(methodMeta.path, [methodMeta.verb], middlewares)

@@ -5,9 +5,12 @@ export function errorHandlerMW(): Middleware {
     try {
       await next()
     } catch (e) {
-      ctx.status = e.status || 500
+      const status = ctx.status = e.status || 500
       ctx.body = {
         error: e.message
+      }
+      if (status >= 500) {
+        console.error(e)
       }
     }
   }

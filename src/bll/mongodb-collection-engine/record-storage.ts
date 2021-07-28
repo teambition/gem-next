@@ -2,7 +2,7 @@ import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, Ob
 import { RecordData } from '../../interface/record'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 import dbClient from '../../service/mongodb'
-import { decodeBsonUpdate, transform } from './util'
+import { decodeBsonUpdate, decodeBsonValue, transform } from './util'
 
 export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   private dbClient: MongoClient
@@ -36,7 +36,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     for (const cfKey in createRecord.cf) {
       // TODO: value should be decode from bson
       const value = createRecord.cf[cfKey]
-      doc['cf:' + cfKey] = value
+      doc['cf:' + cfKey] = decodeBsonValue(value)
     }
     const resp = await this.collection.insertOne(doc)
     doc.id = String(resp.insertedId)
