@@ -1,4 +1,3 @@
-// import recordAPI from '../api/record'
 import * as path from 'path'
 import * as glob from 'glob'
 import { getRouter } from './decorator'
@@ -9,5 +8,5 @@ glob.sync('api/**/*.[jt]s', {
   require('../' + file)
 })
 
-export const router = getRouter('/api')
+export const router = getRouter()
 export default router

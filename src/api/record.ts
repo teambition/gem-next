@@ -6,7 +6,6 @@ import { after, before, controller, middleware, post, responseStream, validator 
 import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
-import { method } from 'lodash'
 
 interface RecordQueryRequest {
   spaceId: string
@@ -49,7 +48,7 @@ interface BatchRequest {
 }
 // const pipelinePromise = promisify(pipeline)
 
-@controller('/record')
+@controller('/api/record')
 @before(async (ctx) => {
   let token = ctx.get('authorization') as string || ''
   token = token.replace(/^Bearer /, '')

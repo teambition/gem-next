@@ -42,7 +42,7 @@ interface RouteParams {
 }
 
 interface RouteMeta {
-  method: string
+  verb: string
   path: string
   // method_path: {method: string, path: string}[]
   params?: RouteParams
@@ -156,15 +156,15 @@ export function after(afterFunc: MiddlewareFn) {
   }
 }
 
-export function request(method = 'get', path = '/') {
+export function request(verb = 'get', path = '/') {
   return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
     const constructor = target.constructor
-    debug('@request', method, path)
+    debug('@request', verb, path)
     if (!controllerMap.has(constructor)) controller('')(constructor)
     const methodMap = controllerMap.get(constructor).methodMap
     if (!methodMap[propertyName]) {
       methodMap[propertyName] = {
-        method,
+        verb,
         path,
         params: {},
         middlewares: [],
@@ -176,7 +176,7 @@ export function request(method = 'get', path = '/') {
       }
       return
     }
-    methodMap[propertyName].method = method
+    methodMap[propertyName].verb = verb
     methodMap[propertyName].path = path
   }
 }
@@ -212,12 +212,12 @@ function getParamsValue(ctx: Context, paramDefinition: ParamDefinition) {
   }
 }
 
-export function getRouter(prefix = '/') {
+export function getRouter(prefix = '') {
   debug('getRouter')
   const router = new KoaRouter({ prefix })
   const controllers = Array.from(controllerMap.values())
   controllers.forEach(controllerMeta => {
-    debug('getRouter prefix: ', controllerMeta.prefix)
+    debug('getRouter controller prefix:', controllerMeta.prefix)
     if (!controllerMeta.prefix) return
     const controller = new controllerMeta.constructor()
     const controllerRouter = new KoaRouter()
@@ -225,8 +225,8 @@ export function getRouter(prefix = '/') {
 
     const methods = Object.values(controllerMeta.methodMap)
     methods.forEach(methodMeta => {
-      debug('getRouter methodMeta', methodMeta)
-      debug('getRouter method: ', methodMeta.method, ' prefix: ', controllerMeta.prefix, 'path', methodMeta.path)
+      debug('getRouter method', methodMeta)
+      // debug('getRouter method verb:', methodMeta.verb, ' prefix:', controllerMeta.prefix, 'path:', methodMeta.path)
       if (!methodMeta.path) return
       const middlewares: Middleware[] = []
 
@@ -280,7 +280,7 @@ export function getRouter(prefix = '/') {
         return next()
       })
 
-      controllerRouter.register(methodMeta.path, [methodMeta.method], middlewares)
+      controllerRouter.register(methodMeta.path, [methodMeta.verb], middlewares)
     })
 
     const middlewares: Middleware[] = [...controllerMeta.middlewares]
