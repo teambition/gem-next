@@ -1,7 +1,12 @@
 import { Context, Middleware } from 'koa'
 import * as KoaRouter from 'koa-router'
 import * as Debug from 'debug'
+import Ajv, { ValidateFunction, SchemaObject } from 'ajv'
+import * as createHttpError from 'http-errors'
 
+const ajv = new Ajv({
+  coerceTypes: true,
+})
 const debug = Debug('koa:controller')
 
 interface Controller {
@@ -46,6 +51,7 @@ interface RouteMeta {
   middlewares: Middleware[]
   befores: MiddlewareFn[]
   afters: MiddlewareFn[]
+  validator: ValidateFunction<any>
   requestStream?: boolean
   responseStream?: boolean
   propertyName: string
@@ -112,8 +118,15 @@ export function middleware(middleware: Middleware) {
   }
 }
 
-export function validator(jsonSchema) {
-  // TODO: generator validator
+export function validator(jsonSchema: SchemaObject) {
+  // generator validator function
+  return (target: any, propertyName: string, descriptor?: PropertyDescriptor) => {
+    debug('@validator')
+    const constructor: ControllerConstructor = target.constructor
+    if (!controllerMap.has(constructor)) controller('')(constructor)
+    if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
+    controllerMap.get(constructor).methodMap[propertyName].validator = ajv.compile(jsonSchema)
+  }
 }
 
 export function before(beforeFunc: MiddlewareFn) {
@@ -164,6 +177,7 @@ export function request(verb = 'get', path = '/') {
         path,
         params: {},
         middlewares: [],
+        validator: null,
         befores: [],
         afters: [],
         requestStream: false,
@@ -230,6 +244,14 @@ export function getRouter(prefix = '') {
 
       // validator
       // TODO: add validator
+      middlewares.push(async (ctx, next) => {
+        if (methodMeta.validator && !methodMeta.validator(ctx.state)) {
+          const error = methodMeta.validator.errors[0]
+          error.message = (error.instancePath || '/') + ' ' + error.message
+          throw createHttpError(400, error.message, { ...error })
+        }
+        return next()
+      })
 
       // middleware
       middlewares.push(...methodMeta.middlewares)
@@ -277,4 +299,8 @@ export function getRouter(prefix = '') {
     router.use(controllerMeta.prefix, ...middlewares)
   })
   return router
+}
+
+export function clearAll() {
+  controllerMap.clear()  
 }
