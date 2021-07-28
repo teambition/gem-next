@@ -6,6 +6,7 @@ require:
 - ts-node/register
 - test/init.ts
 recursive: true
+exit: true
 
 # This is an example Mocha config containing every Mocha option plus others.
 # FROM: https://github.com/mochajs/mocha/blob/master/example/config/.mocharc.yml

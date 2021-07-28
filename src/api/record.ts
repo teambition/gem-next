@@ -73,6 +73,15 @@ export class RecordAPI {
   }
 
   @post('/query')
+  @validator({
+    required: ['spaceId', 'entityId'],
+    properties: {
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+    }
+  })
   @after(async (ctx) => {
     const origin: AsyncIterable<RecordData> = ctx.body as any
     const target = new Transform({
@@ -106,6 +115,15 @@ export class RecordAPI {
   }
 
   @post('/query-array')
+  @validator({
+    required: ['spaceId', 'entityId'],
+    properties: {
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+    }
+  })
   @after(async (ctx) => {
     const records = ctx.body as RecordData[]
     ctx.body = records.map(record => {
@@ -138,6 +156,14 @@ export class RecordAPI {
   }
 
   @post('/update')
+  @validator({
+    required: ['id', 'spaceId', 'entityId'],
+    properties: {
+      id: { type: 'string' },
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+    }
+  })
   @after(resultMW())
   async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
     const result = await this.recordBll.update({
@@ -151,6 +177,14 @@ export class RecordAPI {
   }
 
   @post('/remove')
+  @validator({
+    required: ['id', 'spaceId', 'entityId'],
+    properties: {
+      id: { type: 'string' },
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+    }
+  })
   @after(resultMW())
   async remove({ spaceId, entityId, id }: RecordRemoveRequest) {
     const result = await this.recordBll.remove({
@@ -163,6 +197,13 @@ export class RecordAPI {
   }
 
   @post('/batch')
+  @validator({
+    required: ['spaceId', 'entityId'],
+    properties: {
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+    }
+  })
   @after(resultMW())
   async batch({ spaceId, entityId, actions }: BatchRequest) {
     const result = await Promise.all(actions.map(async action => {

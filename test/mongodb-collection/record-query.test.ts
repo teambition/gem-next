@@ -18,6 +18,6 @@ describe('mongodb-collection-engine/record-query', () => {
       filter: {}
     })
 
-    console.log(t)
+    // console.log(t)
   })
 })
