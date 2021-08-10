@@ -1,0 +1,3 @@
+- [ ] Implement TableRecord
+- [ ] Use decorator to generate swagger documetation
+- [ ] 

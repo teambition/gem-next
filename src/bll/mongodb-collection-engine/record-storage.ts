@@ -1,4 +1,4 @@
-import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, ObjectId } from 'mongodb'
+import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, ObjectId, UpdateOptions } from 'mongodb'
 import { RecordData } from '../../interface/record'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../../interface/record-storage'
 import dbClient from '../../service/mongodb'
@@ -44,7 +44,10 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   }
 
   async update(updateRecord: UpdateRecord): Promise<boolean> {
-    const { id, spaceId, entityId, update } = updateRecord
+    const { id, spaceId, entityId, update, options } = updateRecord
+    const updateOptions: UpdateOptions = {
+      upsert: options?.upsert,
+    }
     const recordUpdate = decodeBsonUpdate(update)
     recordUpdate.$set = recordUpdate.$set || {}
     recordUpdate.$set.updateTime = new Date()
@@ -52,7 +55,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
       _id: new ObjectId(id),
       spaceId,
       entityId,
-    }, recordUpdate)
+    }, recordUpdate, updateOptions)
     return resp.modifiedCount > 0
   }
 
