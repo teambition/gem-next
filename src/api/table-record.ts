@@ -11,6 +11,7 @@ interface RecordQueryRequest {
   skip?: number
   sort?: any
   filter?: any
+  options?: any
 }
 
 interface RecordCreateRequest {
@@ -19,6 +20,7 @@ interface RecordCreateRequest {
   cf: {
     [x: string]: any
   }
+  options?: any
 }
 
 interface RecordUpdateRequest {
@@ -28,6 +30,7 @@ interface RecordUpdateRequest {
   update: {
     [x: string]: any
   }
+  options?: any
 }
 
 interface RecordRemoveRequest {
@@ -97,12 +100,13 @@ export class TableRecordAPI {
   }
 
   @post('/update')
-  async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
+  async update({ spaceId, entityId, id, update, options }: RecordUpdateRequest) {
     const resp = await this.recordBll.update({
-      spaceId: spaceId,
-      entityId: entityId,
-      id: id,
-      update: update,
+      spaceId,
+      entityId,
+      id,
+      update,
+      options,
     })
 
     return resp

@@ -42,6 +42,9 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (skip) cursor.skip(skip)
     if (limit) cursor.limit(limit)
 
+    // TODO: add time limit for query
+    // cursor.maxTimeMS(1000)
+
     // cursor transform to RecordData
     return this.stream(cursor)
   }

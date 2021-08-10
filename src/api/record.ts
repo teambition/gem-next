@@ -18,6 +18,7 @@ interface RecordQueryRequest {
   skip?: number
   sort?: any
   filter?: any
+  options?: any
 }
 
 interface RecordCreateRequest {
@@ -26,6 +27,7 @@ interface RecordCreateRequest {
   cf: {
     [x: string]: any
   }
+  options?: any
 }
 
 interface RecordUpdateRequest {
@@ -35,12 +37,14 @@ interface RecordUpdateRequest {
   update: {
     [x: string]: any
   }
+  options?: any
 }
 
 interface RecordRemoveRequest {
   spaceId: string
   entityId: string
   id: string
+  options?: any
 }
 
 type BatchAction = { method: string } & RecordQueryRequest & RecordCreateRequest & RecordUpdateRequest & RecordRemoveRequest
@@ -122,6 +126,7 @@ export class RecordAPI {
       entityId: { type: 'string' },
       skip: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
       limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      options: { type: 'object' },
     }
   })
   @after(async (ctx) => {
@@ -144,6 +149,15 @@ export class RecordAPI {
   }
 
   @post('/create')
+  @validator({
+    required: ['spaceId', 'entityId'],
+    properties: {
+      id: { type: 'string' },
+      spaceId: { type: 'string' },
+      entityId: { type: 'string' },
+      options: { type: 'object' },
+    }
+  })
   @after(resultMW())
   async create({ spaceId, entityId, cf }: RecordCreateRequest) {
     const record = await this.recordBll.create({
@@ -157,20 +171,23 @@ export class RecordAPI {
 
   @post('/update')
   @validator({
-    required: ['id', 'spaceId', 'entityId'],
+    required: ['id', 'spaceId', 'entityId', 'update'],
     properties: {
       id: { type: 'string' },
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      update: { type: 'object' },
+      options: { type: 'object' },
     }
   })
   @after(resultMW())
-  async update({ spaceId, entityId, id, update }: RecordUpdateRequest) {
+  async update({ spaceId, entityId, id, update, options }: RecordUpdateRequest) {
     const result = await this.recordBll.update({
-      spaceId: spaceId,
-      entityId: entityId,
-      id: id,
-      update: update,
+      spaceId,
+      entityId,
+      id,
+      update,
+      options,
     })
 
     return result
@@ -183,6 +200,7 @@ export class RecordAPI {
       id: { type: 'string' },
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      options: { type: 'object' },
     }
   })
   @after(resultMW())
@@ -202,6 +220,13 @@ export class RecordAPI {
     properties: {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      actions: {
+        type: 'array',
+        item: {
+          type: 'object',
+          properties: { options: { type: 'object' } },
+        }
+      }
     }
   })
   @after(resultMW())
