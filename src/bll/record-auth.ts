@@ -10,7 +10,7 @@ export class RecordAuthBll {
     return jwt.sign({
       spaceId,
       entityId,
-    }, '', {
+    }, config.JWTKEYS[0], {
       expiresIn: expireSeconds
     })
   }
