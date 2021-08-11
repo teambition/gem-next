@@ -222,7 +222,7 @@ export class RecordAPI {
       entityId: { type: 'string' },
       actions: {
         type: 'array',
-        item: {
+        items: {
           type: 'object',
           properties: { options: { type: 'object' } },
         }
