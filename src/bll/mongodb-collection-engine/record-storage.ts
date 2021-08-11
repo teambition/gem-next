@@ -34,12 +34,11 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     }
 
     for (const cfKey in createRecord.cf) {
-      // TODO: value should be decode from bson
       const value = createRecord.cf[cfKey]
       doc['cf:' + cfKey] = decodeBsonValue(value)
     }
     const resp = await this.collection.insertOne(doc)
-    doc.id = String(resp.insertedId)
+    doc._id = String(resp.insertedId)
     return transform(doc)
   }
 
