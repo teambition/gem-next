@@ -60,7 +60,7 @@ export function decodeBsonValue(value: any): any {
   if (['string', 'number', 'boolean'].includes(tov)) return value
 
   const keys = Object.keys(value)
-  const objKey = Object.keys(value)[0]
+  const objKey = keys[0]
   assert.equal(keys.length, 1)
   // assert.equal(keys[0][0], '$')
   // const dataType = keys[0].slice(1)
@@ -150,7 +150,7 @@ export function decodeBsonUpdate(cond: any): any {
     let op = '$set'
 
     if (typeof value === 'object' && !Array.isArray(value)) {
-      const objKey = Object.keys(value)[0]
+      const objKey = value && Object.keys(value)[0]
       if (MANIPULDATE_OPS.includes(objKey)) {
         op = objKey
         value = value[objKey]
