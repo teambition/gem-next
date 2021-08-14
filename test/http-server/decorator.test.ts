@@ -44,14 +44,15 @@ describe('http-server decorator test suite', () => {
         assert.equal(sequence++, 3)
         return next()
       })
-      @decorator.params({
-        k1: {path: 'path', name: 'k1'},
-        k2: {path: 'body', name: 'k2'},
-        k3: {path: 'query', name: 'k3'},
-        k4: 'k4',
+      @decorator.validator({
+        properties: {
+          k1: { type: 'string' },
+        }
       })
-      @decorator.validator({})
-      async getFunc() {
+      async getFunc(data) {
+        assert.deepEqual(data, {
+          k1: 'v1',
+        })
         assert.equal(sequence++, 6)
       }
     }
@@ -60,8 +61,12 @@ describe('http-server decorator test suite', () => {
     const ctx: any = {
       method: 'GET',
       path: '/getFunc',
+      headers: {},
       query: {},
-      request: { body: {} },
+      request: { body: {
+        k1: 'v1',
+        k2: 'v2',
+      } },
     }
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     const next: any = () => {}
@@ -86,6 +91,7 @@ describe('http-server decorator test suite', () => {
     const ctx: any = {
       method: 'GET',
       path: '/getFunc',
+      headers: {},
       query: {},
       request: { body: {} },
     }

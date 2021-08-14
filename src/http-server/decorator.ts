@@ -6,7 +6,14 @@ import * as createHttpError from 'http-errors'
 
 const ajv = new Ajv({
   coerceTypes: true,
+  useDefaults: true,
 })
+
+ajv.addKeyword({
+  keyword: 'from',
+  validate: () => true,
+})
+
 const debug = Debug('koa:controller')
 
 interface Controller {
@@ -26,28 +33,13 @@ interface ControllerMeta {
   middlewares: Middleware[]
   befores: MiddlewareFn[]
   afters: MiddlewareFn[]
-  // methods: RouteMeta[]
   methodMap: Record<string, RouteMeta>
-}
-
-interface ParamDefinition {
-  path: 'path' | 'query' | 'header' | 'body' | string
-  name: string
-}
-
-interface RouteParamsInput {
-  [key: string]: string | Partial<ParamDefinition>
-}
-
-interface RouteParams {
-  [key: string]: ParamDefinition
 }
 
 interface RouteMeta {
   verb: string
   path: string
-  // method_path: {method: string, path: string}[]
-  params?: RouteParams
+  params?: Record<string, string[]>
   middlewares: Middleware[]
   befores: MiddlewareFn[]
   afters: MiddlewareFn[]
@@ -55,7 +47,6 @@ interface RouteMeta {
   requestStream?: boolean
   responseStream?: boolean
   propertyName: string
-  // method: (req: any) => Promise<any>
 }
 
 const controllerMap = new Map<ControllerConstructor, ControllerMeta>()
@@ -76,27 +67,6 @@ export function controller(prefix = '/') {
       return
     }
     controllerMap.get(constructor).prefix = prefix
-  }
-}
-
-export function params(data: RouteParamsInput) {
-  return (target: any, propertyName: string, descriptor: PropertyDescriptor) => {
-    debug('@params')
-    const constructor: ControllerConstructor = target.constructor
-    if (!controllerMap.has(constructor)) controller('')(constructor)
-    if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
-
-    controllerMap.get(constructor).methodMap[propertyName].params = Object.keys(data).reduce<RouteParams>((r, k) => {
-      if (typeof data[k] === 'string') {
-        r[k] = { path: String(data[k]), name: k }
-      } else {
-        r[k] = {
-          name: (data[k] as ParamDefinition).name || k,
-          path: (data[k] as ParamDefinition).path || 'body',
-        }
-      }
-      return r
-    }, {})
   }
 }
 
@@ -126,6 +96,14 @@ export function validator(jsonSchema: SchemaObject) {
     if (!controllerMap.has(constructor)) controller('')(constructor)
     if (!controllerMap.get(constructor).methodMap[propertyName]) request('', '')(target, propertyName, descriptor)
     controllerMap.get(constructor).methodMap[propertyName].validator = ajv.compile(jsonSchema)
+    if (jsonSchema.properties) {
+      const params = Object.keys(jsonSchema.properties).reduce<Record<string, string[]>>((result, field) => {
+        let from = jsonSchema.properties[field].from || ['params', 'body', 'query']
+        if (!Array.isArray(from)) from = [from]
+        return Object.assign(result, {[field]: from})
+      }, {})
+      controllerMap.get(constructor).methodMap[propertyName].params = params
+    }
   }
 }
 
@@ -199,17 +177,6 @@ export function post(path = '/') {
   return request('post', path)
 }
 
-function getParamsValue(ctx: Context, paramDefinition: ParamDefinition) {
-  const paramPath = paramDefinition.path || 'body'
-  const name = paramDefinition.name
-  switch (paramPath) {
-    case 'path': return ctx.params[name]
-    case 'query': return ctx.query[name]
-    default: // body
-      return (ctx.request.body || {})[name] 
-  }
-}
-
 export function getRouter(prefix = '') {
   debug('getRouter')
   const router = new KoaRouter({ prefix })
@@ -231,19 +198,28 @@ export function getRouter(prefix = '') {
       // define data middleware
       middlewares.push(async (ctx, next) => {
         debug('running define state data')
-        ctx.state = Object.assign({}, ctx.params, ctx.query, ctx.request.body)
-        const data = Object.keys(methodMeta.params).reduce((result, key) => {
-          const paramDefinition = methodMeta.params[key]
-          paramDefinition.name = paramDefinition.name || key
-          result[key] = getParamsValue(ctx, paramDefinition)
-          return result
-        }, {})
-        ctx.state = Object.assign(ctx.state, data)
+        ctx.state = Object.assign({}, ctx.query, ctx.params, ctx.request.body)
+        if (methodMeta.params) {
+          const all = {
+            params: ctx.params,
+            query: ctx.query,
+            body: ctx.request.body,
+            header: ctx.headers
+          }
+          ctx.state = Object.keys(methodMeta.params).reduce((result, key) => {
+            let value: any = undefined
+            methodMeta.params[key].some(fromPath => {
+              const fromKey = fromPath.split('.')[1] || key
+              value = all[fromPath] && all[fromPath][fromKey] || undefined
+              return value !== undefined
+            })
+            return Object.assign(result, {[key]: value})
+          }, {})
+        }
         return next()
       })
 
       // validator
-      // TODO: add validator
       middlewares.push(async (ctx, next) => {
         if (methodMeta.validator && !methodMeta.validator(ctx.state)) {
           const error = methodMeta.validator.errors[0]
