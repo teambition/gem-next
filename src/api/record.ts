@@ -78,6 +78,7 @@ export class RecordAPI {
 
   @post('/query')
   @validator({
+    type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
       spaceId: { type: 'string' },
@@ -122,6 +123,7 @@ export class RecordAPI {
 
   @post('/query-array')
   @validator({
+    type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
       spaceId: { type: 'string' },
@@ -154,6 +156,7 @@ export class RecordAPI {
 
   @post('/create')
   @validator({
+    type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
       id: { type: 'string' },
@@ -175,6 +178,7 @@ export class RecordAPI {
 
   @post('/update')
   @validator({
+    type: 'object',
     required: ['id', 'spaceId', 'entityId', 'update'],
     properties: {
       id: { type: 'string' },
@@ -199,6 +203,7 @@ export class RecordAPI {
 
   @post('/remove')
   @validator({
+    type: 'object',
     required: ['id', 'spaceId', 'entityId'],
     properties: {
       id: { type: 'string' },
@@ -220,6 +225,7 @@ export class RecordAPI {
 
   @post('/batch')
   @validator({
+    type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
       spaceId: { type: 'string' },
