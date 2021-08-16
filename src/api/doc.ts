@@ -11,6 +11,11 @@ let openapi: any
 @before(async (ctx) => {
   if (config.DISABLE_DOC) throw createHttpError(403)
 })
+@before(async (ctx) => {
+  if (ctx.get('origin')) {
+    ctx.set('Access-Control-Allow-Origin', '*')
+  }
+})
 export class VersionAPI {
   @get('/')
   async doc() {
