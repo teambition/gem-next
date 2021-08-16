@@ -1,0 +1,216 @@
+openapi: "3.0.0"
+info:
+  title: General Entity Manager(Next)
+  description: |
+    General Entity Manager (Next)
+  version: '0.0.1'
+  # termsOfService: "http://swagger.io/terms/"
+  contact:
+    email: "orangemiwj@gmail.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+servers: []
+
+tags:
+- name: API
+- name: Record API
+
+paths:
+  /api/record/create:
+    post:
+      summary: Create Record
+      tags: 
+        - Record API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, spaceId, cf]
+              properties:
+                entityId:
+                  type: string
+                spaceId:
+                  type: string
+                cf:
+                  type: object
+      responses:
+        '200':
+          description: 'Create Success'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      createTime:
+                        type: string
+                        format: date
+                      updateTime:
+                        type: string
+                        format: date
+                      cf:
+                        type: object
+  /api/record/update:
+    post:
+      summary: Update Record
+      tags: 
+        - Record API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, spaceId, cf]
+              properties:
+                entityId:
+                  type: string
+                spaceId:
+                  type: string
+                id:
+                  type: string
+                update:
+                  type: object
+      responses:
+        '200':
+          description: 'Update Record Success Or Fail'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+  /api/record/remove:
+    post:
+      summary: Remove Record
+      tags: 
+        - Record API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, spaceId, cf]
+              properties:
+                entityId:
+                  type: string
+                spaceId:
+                  type: string
+                id:
+                  type: string
+      responses:
+        '200':
+          description: 'Remove Record Success Or Fail'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: boolean
+  /api/record/query:
+    post:
+      summary: Query Record in Stream Mode
+      tags: 
+        - Record API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, spaceId, cf]
+              properties:
+                entityId:
+                  type: string
+                spaceId:
+                  type: string
+                filter:
+                  type: object
+                sort:
+                  type: object
+                skip:
+                  type: number
+                  default: 0
+                limit:
+                  type: number
+                  default: 10
+                disableBsonEncode:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Query Record Success in JSON-lined Stream
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  createTime:
+                    type: string
+                    format: date
+                  updateTime:
+                    type: string
+                    format: date
+                  cf:
+                    type: object
+
+  /api/record/query-array:
+    post:
+      summary: Query Record in JSON Array Mode
+      tags: 
+        - Record API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entityId, spaceId, cf]
+              properties:
+                entityId:
+                  type: string
+                spaceId:
+                  type: string
+                filter:
+                  type: object
+                sort:
+                  type: object
+                skip:
+                  type: number
+                  default: 0
+                limit:
+                  type: number
+                  default: 10
+                disableBsonEncode:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Query Record Success in JSON Array
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        createTime:
+                          type: string
+                          format: date
+                        updateTime:
+                          type: string
+                          format: date
+                        cf:
+                          type: object

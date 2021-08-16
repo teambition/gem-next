@@ -17,6 +17,7 @@
     "@types/config": "^0.0.39",
     "@types/debug": "^4.1.7",
     "@types/glob": "^7.1.4",
+    "@types/js-yaml": "^4.0.2",
     "@types/jsonwebtoken": "^8.5.4",
     "@types/koa-bodyparser": "^4.3.2",
     "@types/koa-router": "^7.4.4",

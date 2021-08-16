@@ -82,11 +82,13 @@ export class RecordAPI {
     properties: {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
-      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
       limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      disableBsonEncode: { type: 'boolean', default: false },
     }
   })
   @after(async (ctx) => {
+    if (ctx.state.disableBsonEncode) return
     const origin: AsyncIterable<RecordData> = ctx.body as any
     const target = new Transform({
       // readableObjectMode: true,
@@ -124,12 +126,14 @@ export class RecordAPI {
     properties: {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
-      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
       limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
       options: { type: 'object' },
+      disableBsonEncode: { type: 'boolean', default: false },
     }
   })
   @after(async (ctx) => {
+    if (ctx.state.disableBsonEncode) return
     const records = ctx.body as RecordData[]
     ctx.body = records.map(record => {
       return {...record, cf: Object.keys(record.cf).reduce((cf, key) => {
