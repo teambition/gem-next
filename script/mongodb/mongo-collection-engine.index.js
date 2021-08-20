@@ -7,13 +7,22 @@ db.record.createIndex({
   background: true
 })
 
-// spaceId, labels compond index
+// spaceId, entityId, labels compond index
 db.record.createIndex({
   spaceId: 1,
-  isDeleted: 1,
+  entityId: 1,
   labels: 1,
-  _id: 1,
 }, {
   background: true
+})
+
+// spaceId, entityId, id compond index
+db.record.createIndex({
+  spaceId: 1,
+  entityId: 1,
+  id: 1,
+}, {
+  // unique: true,
+  background: true,
 })
 

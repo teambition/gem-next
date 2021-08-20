@@ -35,7 +35,6 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (sort) {
       cursor.sort(Object.keys(sort).reduce<Record<string, any>>((r, k) => {
         const sortOrder = sort[k] || 1
-        if (k === 'id') k = '_id'
         return Object.assign(r, { [k]: sortOrder })
       }, {}))
     }

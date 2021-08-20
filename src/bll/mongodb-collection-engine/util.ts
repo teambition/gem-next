@@ -28,7 +28,7 @@ interface TransformOptions {
 
 export function transform(doc: any, options: TransformOptions = {}): RecordData {
   return {
-    id: String(doc._id),
+    id: String(doc.id),
     spaceId: String(doc.spaceId),
     entityId: String(doc.entityId),
     labels: doc.labels || [],
@@ -85,7 +85,6 @@ export function encodeBsonValue(value: any): any {
 }
 
 export function decodeField(key: string) {
-  if (key === 'id') return '_id'
   if (INTERNAL_KEYS.includes(key)) return key
   return 'cf:' + key
 }

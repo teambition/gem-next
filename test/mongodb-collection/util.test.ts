@@ -72,7 +72,7 @@ describe('mongodb-collection-engine/util', () => {
   describe('transform', () => {
     it('transform()', () => {
       const result = mceUtil.transform({
-        _id: 'abc',
+        id: 'abc',
         spaceId: 's1',
         entityId: 'e1',
         'cf:abc': 123,

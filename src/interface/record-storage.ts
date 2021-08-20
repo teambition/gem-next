@@ -2,6 +2,7 @@ import { QueryResult } from './query'
 import { RecordCustomfieldMap, RecordData } from './record'
 
 export interface CreateRecord {
+  id?: string
   spaceId: string
   entityId: string
   labels?: string[]

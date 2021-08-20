@@ -26,6 +26,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     labelSet.add(`entity:${createRecord.entityId}`)
 
     const doc: Record<string, any> = {
+      id: createRecord.id || new ObjectId().toHexString(),
       spaceId: createRecord.spaceId,
       entityId: createRecord.entityId,
       labels: Array.from(labels),
@@ -51,7 +52,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     recordUpdate.$set = recordUpdate.$set || {}
     recordUpdate.$set.updateTime = new Date()
     const resp = await this.collection.updateOne({
-      _id: new ObjectId(id),
+      id: new ObjectId(id),
       spaceId,
       entityId,
     }, recordUpdate, updateOptions)
@@ -61,7 +62,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   async remove(removeRecord: RemoveRecord): Promise<boolean> {
     const { id, spaceId, entityId } = removeRecord
     const resp = await this.collection.deleteOne({
-      _id: new ObjectId(id),
+      id: new ObjectId(id),
       spaceId,
       entityId,
     })
