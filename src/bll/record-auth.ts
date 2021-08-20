@@ -23,13 +23,22 @@ export class RecordAuthBll {
         claim = jwt.verify(token, key) as {[x: string]: any}
       }
       debug('verify claim', claim)
-      assert.ok(claim.spaceId === '*' || claim.spaceId === spaceId)
-      assert.ok(claim.entityId === '*' || claim.entityId === entityId)
+      assert.ok(claim.spaceId && claim.entityId)
+      const spaceIdRegExps = this.generateRegExp(claim.spaceId)
+      const entityIdRegExps = this.generateRegExp(claim.entityId)
+      assert.ok(spaceIdRegExps.some(regex => regex.test(spaceId)))
+      assert.ok(entityIdRegExps.some(regex => regex.test(entityId)))
     } catch (e) {
       const error = new Error('invalid jwt token')
       Object.assign(error, { status: 403, origin: e.message })
       throw error
     }
+  }
+
+  generateRegExp(m: string): RegExp[] {
+    return m.split(',')
+      .filter(v => v)
+      .map(m => new RegExp('^' + m.replace(/\*/, '\\w*') + '$'))
   }
 }
 
