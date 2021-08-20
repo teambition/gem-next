@@ -35,7 +35,7 @@ describe('mongodb-collection-engine/record-storage', () => {
     })
 
     assert.ok(result)
-    assert.equal(result.id, 'id-1')
+    assert.ok(result.id)
     assert.equal(result.cf.abc, 123)
     assert.equal(insertOne.callCount, 1)
     assert.equal(insertOne.args[0][0]['cf:abc'], 123)
@@ -99,6 +99,6 @@ describe('mongodb-collection-engine/record-storage', () => {
     })
 
     assert.equal(result, true)
-    assert.equal(deleteOne.args[0][0]._id.toString(), '123456789012345678901234')
+    assert.equal(deleteOne.args[0][0].id.toString(), '123456789012345678901234')
   })
 })

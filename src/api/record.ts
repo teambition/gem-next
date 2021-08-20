@@ -83,6 +83,7 @@ export class RecordAPI {
     properties: {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      filter: { type: 'object' },
       skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
       limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
       disableBsonEncode: { type: 'boolean', default: false },
@@ -162,6 +163,7 @@ export class RecordAPI {
       id: { type: 'string' },
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      cf: { type: 'object' },
       options: { type: 'object' },
     }
   })

@@ -17,9 +17,9 @@ describe('mongodb-collection-engine/record-query', () => {
     })
 
     MemoryMongoDB.replaceCollection('record', [
-      { entityId: '2', spaceId: '1', _id: 'id-1', createTime: new Date(), updateTime: new Date() },
-      { entityId: '2', spaceId: '1', _id: 'id-2', createTime: new Date(), updateTime: new Date() },
-      { entityId: '2', spaceId: '1', _id: 'id-3', createTime: new Date(), updateTime: new Date() },
+      { entityId: '2', spaceId: '1', id: 'id-1', createTime: new Date(), updateTime: new Date() },
+      { entityId: '2', spaceId: '1', id: 'id-2', createTime: new Date(), updateTime: new Date() },
+      { entityId: '2', spaceId: '1', id: 'id-3', createTime: new Date(), updateTime: new Date() },
     ])
 
     const cursor = await bll.query({
