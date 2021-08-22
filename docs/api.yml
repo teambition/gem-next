@@ -167,6 +167,11 @@ paths:
       summary: Query Record in JSON Array Mode
       tags: 
         - Record API
+      params:
+        - name: xxx
+          in: path
+        - name: yyy
+          in: header
       requestBody:
         content:
           application/json:

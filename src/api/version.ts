@@ -31,6 +31,17 @@ try {
 })
 export class VersionAPI {
   @get('/')
+  @skipLogger()
+  async version() {
+    return version
+  }
+  @get('/')
+  @skipLogger()
+  async version() {
+    return version
+  }
+  @get('/')
+  @skipLogger()
   async version() {
     return version
   }
