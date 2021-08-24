@@ -38,7 +38,7 @@ export class RecordAuthBll {
   generateRegExp(m: string): RegExp[] {
     return m.split(',')
       .filter(v => v)
-      .map(m => new RegExp('^' + m.replace(/\*/, '\\w*') + '$'))
+      .map(m => new RegExp('^' + m.replace(/\*/, '[\\w:-_]*').trim() + '$'))
   }
 }
 
