@@ -48,7 +48,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.stream(cursor)
   }
 
-  stream(cursor: MongodbCursor): AsyncIterable<RecordData> {
+  private stream(cursor: MongodbCursor): AsyncIterable<RecordData> {
     const result = new StreamTransform({
       readableObjectMode: true,
       objectMode: true,
@@ -61,6 +61,16 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       console.error(err)
       result.emit('error', err)
     })
+    return result
+  }
+
+  async count({ filter, spaceId, entityId }: RecordQuery<any, any>): Promise<number> {
+    let conds = decodeBsonQuery(filter || {})
+    conds = Object.assign({
+      spaceId,
+      entityId,
+    }, conds)
+    const result = await this.collection.countDocuments(conds, {})
     return result
   }
 }

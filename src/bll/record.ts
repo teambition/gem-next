@@ -40,6 +40,13 @@ export class RecordBllImpl implements RecordStorageBll, RecordQueryBll<any, any>
     // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordQueryBll.query(query)
   }
+
+  async count(query: RecordQuery<any, any>): Promise<number> {
+    // TODO: get query.entityId and find entity
+    // TODO: get entity.engineId and find engine
+    // TODO: get engineClass Info get queryEngine or storageEngine
+    return this.recordQueryBll.count(query)
+  }
 }
 
 export default new RecordBllImpl()

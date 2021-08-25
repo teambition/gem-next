@@ -14,4 +14,5 @@ export interface RecordQuery<FilterType, SortType> {
 
 export interface RecordQueryBll<FilterType, SortType> {
   query(query: RecordQuery<FilterType, SortType>): Promise<AsyncIterable<RecordData>>
+  count?(query: RecordQuery<FilterType, SortType>): Promise<number>
 }
