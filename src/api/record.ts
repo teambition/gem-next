@@ -130,6 +130,7 @@ export class RecordAPI {
     properties: {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
+      filter: { type: 'object' },
       skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
       limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
       options: { type: 'object' },
