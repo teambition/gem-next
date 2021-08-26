@@ -52,7 +52,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
     recordUpdate.$set = recordUpdate.$set || {}
     recordUpdate.$set.updateTime = new Date()
     const resp = await this.collection.updateOne({
-      id: new ObjectId(id),
+      id: id,
       spaceId,
       entityId,
     }, recordUpdate, updateOptions)

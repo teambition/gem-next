@@ -24,6 +24,7 @@ interface RecordQueryRequest {
 interface RecordCreateRequest {
   spaceId: string
   entityId: string
+  id?: string
   cf: {
     [x: string]: any
   }
@@ -168,8 +169,9 @@ export class RecordAPI {
     }
   })
   @after(resultMW())
-  async create({ spaceId, entityId, cf }: RecordCreateRequest) {
+  async create({ spaceId, entityId, cf, id }: RecordCreateRequest) {
     const record = await this.recordBll.create({
+      id,
       spaceId: spaceId,
       entityId: entityId,
       cf: cf,
