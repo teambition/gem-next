@@ -31,10 +31,12 @@ export class MongodbCollectionRecordTransferBllImpl {
       entityId: opt.sourceEntityId,
       spaceId: opt.sourceSpaceId,
     }
-    if (opt.id) { conds._id = new ObjectId(opt.id) }
+    if (opt.id) { conds.id = opt.id }
     const resp = await this.collection.updateMany(conds, {
-      entityId: opt.targetEntityId,
-      spaceId: opt.targetSpaceId,
+      $set: {
+        entityId: opt.targetEntityId,
+        spaceId: opt.targetSpaceId,
+      }
     })
     return resp.modifiedCount
   }
