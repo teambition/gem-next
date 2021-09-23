@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { controller, get } from '../http-server/decorator'
+import { controller, get, before } from '../http-server/decorator'
 
 const version = {
   name: 'unknown',
@@ -24,6 +24,9 @@ try {
 }
 
 @controller('/version')
+@before(async ctx => {
+  ctx.skipLogger = true
+})
 export class VersionAPI {
   @get('/')
   async version() {

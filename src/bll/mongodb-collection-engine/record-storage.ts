@@ -62,7 +62,7 @@ export class MongodbCollectionRecordStorageBllImpl implements RecordStorageBll {
   async remove(removeRecord: RemoveRecord): Promise<boolean> {
     const { id, spaceId, entityId } = removeRecord
     const resp = await this.collection.deleteOne({
-      id: new ObjectId(id),
+      id,
       spaceId,
       entityId,
     })
