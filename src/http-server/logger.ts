@@ -6,16 +6,18 @@ export function loggerMW(): Middleware {
     try {
       await next()
     } finally {
-      const payload = {
-        class: 'request',
-        timestamp: new Date().toISOString(),
-        status: ctx.status,
-        method: ctx.method,
-        duration: Date.now() - start,
-        url: ctx.originalUrl,
-        userAgent: ctx.get('user-agent'),
+      if (!ctx.skipLogger) {
+        const payload = {
+          class: 'request',
+          timestamp: new Date().toISOString(),
+          status: ctx.status,
+          method: ctx.method,
+          duration: Date.now() - start,
+          url: ctx.originalUrl,
+          userAgent: ctx.get('user-agent'),
+        }
+        console.log(JSON.stringify(payload))
       }
-      console.log(JSON.stringify(payload))
     }
   }
 }
