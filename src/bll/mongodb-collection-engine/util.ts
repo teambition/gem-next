@@ -140,6 +140,7 @@ export function decodeBsonUpdate(cond: any): any {
   // key: {$date: '2021-12-03'}
   // key: {$addSet: 'abc'}
   // key: ['abc']
+  // key: [{$date: '2021-12-03'}]
   // key: {$set: ['abc']}
   // const result = 
   const result: any = {}
@@ -154,8 +155,9 @@ export function decodeBsonUpdate(cond: any): any {
         op = objKey
         value = value[objKey]
       }
-      value = decodeBsonValue(value)
     }
+
+    value = decodeBsonValue(value)
 
     // addToSet and pull need a value of array
     if ((op === '$addToSet' || op === '$pull') && !Array.isArray(value)) {
