@@ -64,6 +64,7 @@ describe('mongodb-collection-engine/util', () => {
       })
     }
     decodeBsonUpdateTest('{key:value}', {a: 'b'}, {$set: {'cf:a': 'b'}})
+    decodeBsonUpdateTest('{key:[value]}', {a: ['b1','b2']}, {$set: {'cf:a': ['b1', 'b2']}})
     decodeBsonUpdateTest('{key:{$set: value}}', {a: {$set: 'b'}}, {$set: {'cf:a': 'b'}})
     decodeBsonUpdateTest('{key:{$addToSet: value}}', {a: {$addToSet: 'b'}}, {$addToSet: {'cf:a': {$each: ['b']}}})
     decodeBsonUpdateTest('{key:{$pull: value}}', {a: {$pull: 'b'}}, {$pullAll: {'cf:a': ['b']}})
