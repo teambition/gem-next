@@ -10,7 +10,7 @@ export function errorHandlerMW(): Middleware {
         error: e.message
       }
       if (status >= 500) {
-        console.error(e)
+        ctx.logger.error({ message: e, class: 'request' })
       }
     }
   }

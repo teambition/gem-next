@@ -16,7 +16,7 @@ export function loggerMW(): Middleware {
           url: ctx.originalUrl,
           userAgent: ctx.get('user-agent'),
         }
-        console.log(JSON.stringify(payload))
+        ctx.logger.info(JSON.stringify(payload))
       }
     }
   }

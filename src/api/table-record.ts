@@ -41,7 +41,12 @@ interface RecordRemoveRequest {
 
 // @controller('/table-record')
 @after(async ctx => {
-  console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
+  ctx.logger.info({
+    method: ctx.method,
+    url: ctx.url,
+    status: ctx.status,
+    state: ctx.state
+  })
 })
 export class TableRecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>

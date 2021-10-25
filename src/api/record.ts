@@ -107,7 +107,7 @@ export class RecordAPI {
     })
     ctx.body = target
     pipelinePromise(origin, target).catch(err => {
-      console.error(err)
+      ctx.logger.error(err)
     })
   })
   async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {

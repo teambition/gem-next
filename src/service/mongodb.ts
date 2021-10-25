@@ -10,5 +10,10 @@ client.connect().then(() => {
   console.error('fatal mongo connection error', err)
   process.exit(1)
 })
+client.on('error', err => {
+  console.error(Object.assign(err, {
+    class: 'mongodb'
+  }))
+})
 
 export default client
