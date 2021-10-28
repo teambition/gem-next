@@ -10,6 +10,9 @@ export function errorHandlerMW(): Middleware {
         error: e.message
       }
       if (status >= 500) {
+        console.error(Object.assign(e, {
+          method: ctx.method,
+        }))
         console.error(e)
       }
     }

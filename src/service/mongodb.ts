@@ -4,6 +4,12 @@ import * as config from 'config'
 const options: mongodb.MongoClientOptions = { }
 Object.assign(options, config.MONGODB?.OPTIONS)
 export const client = new mongodb.MongoClient(config.MONGODB?.URL, options)
+
+client.on()
+client.on('error', (err) => {
+err.message
+})
+
 client.connect().then(() => {
   console.log('mongodb connection success')
 }, err => {
