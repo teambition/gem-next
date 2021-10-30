@@ -8,7 +8,9 @@ import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
+import { createLogger } from '../service/logger'
 
+const logger = createLogger({ label: 'record-api' })
 const pipelinePromise = promisify(pipeline)
 
 interface RecordQueryRequest {
@@ -107,7 +109,7 @@ export class RecordAPI {
     })
     ctx.body = target
     pipelinePromise(origin, target).catch(err => {
-      console.error(err)
+      logger.error(err, 'pipeline-error')
     })
   })
   async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {

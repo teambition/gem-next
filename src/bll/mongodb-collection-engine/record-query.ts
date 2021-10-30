@@ -5,6 +5,8 @@ import { RecordData } from '../../interface/record'
 import { transform, decodeBsonQuery } from './util'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
+import { createLogger } from '../../service/logger'
+const logger = createLogger({ label: 'mongodb-collection-engine' })
 
 const pipelinePromise = promisify(pipeline)
 
@@ -58,7 +60,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     })
     // cursor.pipe(transform)
     pipelinePromise(cursor.stream(), result).catch(err => {
-      console.error(err)
+      logger.error(err)
       result.emit('error', err)
     })
     return result

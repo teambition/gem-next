@@ -1,19 +1,20 @@
 import * as mongodb from 'mongodb'
 import * as config from 'config'
+import { createLogger } from './logger'
 
+const logger = createLogger({ label: 'mongodb' })
 const options: mongodb.MongoClientOptions = { }
 Object.assign(options, config.MONGODB?.OPTIONS)
 export const client = new mongodb.MongoClient(config.MONGODB?.URL, options)
 
-client.on()
 client.on('error', (err) => {
-err.message
+  logger.error(err)
 })
 
 client.connect().then(() => {
-  console.log('mongodb connection success')
+  logger.info('mongodb connection success')
 }, err => {
-  console.error('fatal mongo connection error', err)
+  logger.error(err, 'mongo connection error')
   process.exit(1)
 })
 

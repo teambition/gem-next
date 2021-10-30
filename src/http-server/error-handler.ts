@@ -1,4 +1,6 @@
 import { Middleware } from 'koa'
+import { createLogger } from '../service/logger'
+const logger = createLogger({ label: 'http-error' })
 
 export function errorHandlerMW(): Middleware {
   return async (ctx, next) => {
@@ -10,10 +12,12 @@ export function errorHandlerMW(): Middleware {
         error: e.message
       }
       if (status >= 500) {
-        console.error(Object.assign(e, {
+        logger.error(Object.assign(e, {
           method: ctx.method,
+          url: ctx.url,
+          headers: ctx.headers,
+          reqBody: JSON.stringify(ctx.request.body),
         }))
-        console.error(e)
       }
     }
   }
