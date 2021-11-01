@@ -1,4 +1,6 @@
 import { Middleware } from 'koa'
+import { createLogger } from '../service/logger'
+const logger = createLogger({ label: 'http-request' })
 
 export function loggerMW(): Middleware {
   return async (ctx, next) => {
@@ -7,16 +9,13 @@ export function loggerMW(): Middleware {
       await next()
     } finally {
       if (!ctx.skipLogger) {
-        const payload = {
-          class: 'request',
-          timestamp: new Date().toISOString(),
+        logger.info({
           status: ctx.status,
           method: ctx.method,
           duration: Date.now() - start,
           url: ctx.originalUrl,
           userAgent: ctx.get('user-agent'),
-        }
-        console.log(JSON.stringify(payload))
+        })
       }
     }
   }

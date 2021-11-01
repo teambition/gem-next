@@ -8,6 +8,12 @@ declare module 'config' {
       URL: string
       OPTIONS: { [x: string]: any }
     }
+    LOGGERS: {
+      base: Record<string, any>
+      MONGODB: Record<string, any>
+      HTTP: Record<string, any>
+      [x: string]: Record<string, any>
+    }
   }
 
   const config: Config

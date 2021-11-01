@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { controller, get, before } from '../http-server/decorator'
+import { createLogger } from '../service/logger'
+const logger = createLogger({ label: 'version' })
 
 const version = {
   name: 'unknown',
@@ -20,7 +22,7 @@ try {
   version.buildTime = new Date(buildInfo.TIME)
   version.commit = buildInfo.COMMIT || 'unknown'
 } catch (e) {
-  console.warn('invaild version.json for /version: ' + e.message)
+  logger.warn('invaild version.json for /version: ' + e.message)
 }
 
 @controller('/version')
