@@ -24,7 +24,7 @@ export function createLogger({
         ignore: 'label',
       },
     },
-  }, config.LOGGERS && config.LOGGERS[label], options), pino.destination(destination))
+  }, config.LOGGERS?.base, config.LOGGERS && config.LOGGERS[label], options), pino.destination(destination))
 }
 
 export default createLogger
