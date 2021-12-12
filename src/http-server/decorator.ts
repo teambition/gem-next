@@ -185,7 +185,24 @@ export function getRouter(prefix = '') {
     debug('getRouter controller prefix:', controllerMeta.prefix)
     if (!controllerMeta.prefix) return
     const controller = new controllerMeta.constructor()
-    const controllerRouter = new KoaRouter()
+    const controllerMiddlewares: Middleware[] = [...controllerMeta.middlewares]
+
+    // before after middlewares
+    controllerMiddlewares.push(async (ctx, next) => {
+      for (const before of controllerMeta.befores) {
+        debug('running controller before')
+        await before(ctx)
+      }
+      debug('running controller')
+      await next()
+      for (const after of controllerMeta.afters) {
+        debug('running controller after')
+        await after(ctx)
+      }
+    })
+
+    // middlewares.push(controllerRouter.routes())
+    // const controllerRouter = new KoaRouter()
     // middleware // maybe validator or authorzation check.
 
     const methods = Object.values(controllerMeta.methodMap)
@@ -252,27 +269,10 @@ export function getRouter(prefix = '') {
         ctx.body = await controller[methodMeta.propertyName](ctx.state, ctx)
       })
 
-      controllerRouter.register(methodMeta.path, [methodMeta.verb], middlewares)
+      router.register(controllerMeta.prefix + methodMeta.path, [methodMeta.verb], [...controllerMiddlewares, ...middlewares])
     })
 
-    const middlewares: Middleware[] = [...controllerMeta.middlewares]
-
-    // before after middlewares
-    middlewares.push(async (ctx, next) => {
-      for (const before of controllerMeta.befores) {
-        debug('running controller before')
-        await before(ctx)
-      }
-      debug('running controller')
-      await next()
-      for (const after of controllerMeta.afters) {
-        debug('running controller after')
-        await after(ctx)
-      }
-    })
-
-    middlewares.push(controllerRouter.routes())
-    router.use(controllerMeta.prefix, ...middlewares)
+    // router.use(controllerMeta.prefix, ...controllerMiddlewares)
   })
   return router
 }
