@@ -65,6 +65,10 @@ export function resultMW(): MiddlewareFn {
   }
 }
 
+/** Function2 2023423i
+ * @summary ggg
+ * @description ggghhh
+ */
 @controller('/api/record')
 @before(async (ctx) => {
   let token = ctx.get('authorization') as string || ''
@@ -159,12 +163,21 @@ export class RecordAPI {
     return records
   }
 
+  /**
+   * @summary abc create record api
+   * @description bcd balala
+   * @response
+   *  schema:
+   *    type: object
+   *    properties:
+   *      result:
+   */
   @post('/create')
   @validator({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
-      id: { type: 'string' },
+      id: { type: 'string', summary: 'xxx', description: 'yyy' },
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
       cf: { type: 'object' },
@@ -183,6 +196,9 @@ export class RecordAPI {
     return record
   }
 
+  /**
+   * @description bcc l999
+   */
   @post('/update')
   @validator({
     type: 'object',

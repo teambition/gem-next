@@ -49,7 +49,7 @@ interface RouteMeta {
   propertyName: string
 }
 
-const controllerMap = new Map<ControllerConstructor, ControllerMeta>()
+export const controllerMap = new Map<ControllerConstructor, ControllerMeta>()
 // const controllers: ControllerMeta[] = []
 
 export function controller(prefix = '/') {

@@ -1,0 +1,86 @@
+[
+    {
+        "name": "MongodbCollectionRecordStorageBllImpl",
+        "documentation": "",
+        "type": "typeof MongodbCollectionRecordStorageBllImpl",
+        "constructors": [
+            {
+                "parameters": [
+                    {
+                        "name": "options",
+                        "documentation": "",
+                        "type": "{ dbClient?: MongoClient; }"
+                    }
+                ],
+                "returnType": "MongodbCollectionRecordStorageBllImpl",
+                "documentation": ""
+            }
+        ]
+    },
+    {
+        "name": "MongodbCollectionRecordQueryBllImpl",
+        "documentation": "",
+        "type": "typeof MongodbCollectionRecordQueryBllImpl",
+        "constructors": [
+            {
+                "parameters": [
+                    {
+                        "name": "options",
+                        "documentation": "",
+                        "type": "{ dbClient?: MongoClient; }"
+                    }
+                ],
+                "returnType": "MongodbCollectionRecordQueryBllImpl",
+                "documentation": ""
+            }
+        ]
+    },
+    {
+        "name": "RecordBllImpl",
+        "documentation": "",
+        "type": "typeof RecordBllImpl",
+        "constructors": [
+            {
+                "parameters": [
+                    {
+                        "name": "options",
+                        "documentation": "",
+                        "type": "{ recordStorageBll?: RecordStorageBll; recordQueryBll?: RecordQueryBll<any, any>; }"
+                    }
+                ],
+                "returnType": "RecordBllImpl",
+                "documentation": ""
+            }
+        ]
+    },
+    {
+        "name": "RecordAuthBll",
+        "documentation": "",
+        "type": "typeof RecordAuthBll",
+        "constructors": [
+            {
+                "parameters": [],
+                "returnType": "RecordAuthBll",
+                "documentation": ""
+            }
+        ]
+    },
+    {
+        "name": "RecordAPI",
+        "documentation": "Function2 2023423i",
+        "type": "typeof RecordAPI",
+        "constructors": [
+            {
+                "parameters": [
+                    {
+                        "name": "options",
+                        "documentation": "",
+                        "type": "{ recordBll?: RecordStorageBll & RecordQueryBll<any, any>; }"
+                    }
+                ],
+                "returnType": "RecordAPI",
+                "documentation": ""
+            }
+        ]
+    }
+]
