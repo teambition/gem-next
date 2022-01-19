@@ -26,7 +26,7 @@ describe('mongodb-collection-engine/record-query', () => {
       entityId: '2',
       spaceId: '1',
       filter: {},
-      sort: { id: -1 },
+      sort: { id: -1, created: 1 },
       limit: 10,
       skip: 1,
     })

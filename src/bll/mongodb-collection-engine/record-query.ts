@@ -2,7 +2,7 @@ import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
 import { Collection as MongodbCollection, FindCursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
 import { RecordData } from '../../interface/record'
-import { transform, decodeBsonQuery } from './util'
+import { transform, decodeBsonQuery, decodeField } from './util'
 import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
 import { createLogger } from '../../service/logger'
@@ -37,7 +37,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (sort) {
       cursor.sort(Object.keys(sort).reduce<Record<string, any>>((r, k) => {
         const sortOrder = sort[k] || 1
-        return Object.assign(r, { [k]: sortOrder })
+        return Object.assign(r, { [decodeField(k)]: sortOrder })
       }, {}))
     }
     if (skip) cursor.skip(skip)
