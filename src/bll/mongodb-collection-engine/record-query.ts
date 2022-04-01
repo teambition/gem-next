@@ -1,3 +1,4 @@
+import * as config from 'config'
 import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
 import { Collection as MongodbCollection, FindCursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
@@ -24,7 +25,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.db.collection('record')
   }
 
-  async query({ filter, sort, spaceId, entityId, limit, skip = 0 }: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
+  async query({ filter, sort, spaceId, entityId, limit, skip = 0, options = {} }: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
     // filter transform to mongo query condition
     let conds = decodeBsonQuery(filter || {})
     conds = Object.assign({
@@ -43,8 +44,9 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (skip) cursor.skip(skip)
     if (limit) cursor.limit(limit)
 
-    // TODO: add time limit for query
-    // cursor.maxTimeMS(1000)
+    // add time limit for query
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) cursor.maxTimeMS(maxTimeMs)
 
     // cursor transform to RecordData
     return this.stream(cursor)
@@ -66,13 +68,14 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return result
   }
 
-  async count({ filter, spaceId, entityId }: RecordQuery<any, any>): Promise<number> {
+  async count({ filter, spaceId, entityId, options }: RecordQuery<any, any>): Promise<number> {
     let conds = decodeBsonQuery(filter || {})
     conds = Object.assign({
       spaceId,
       entityId,
     }, conds)
-    const result = await this.collection.countDocuments(conds, {})
+
+    const result = await this.collection.countDocuments(conds, Object.assign({}, config.MONGODB_QUERY_OPTIONS, options))
     return result
   }
 }

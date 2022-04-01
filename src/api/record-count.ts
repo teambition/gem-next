@@ -39,11 +39,12 @@ export class RecordAPI {
       spaceId: { type: 'string' },
       entityId: { type: 'string' },
       filter: { type: 'object' },
+      options: { type: 'object' },
     }
   })
   @after(resultMW())
-  async count({filter, spaceId, entityId}: RecordCountQueryRequest) {
-  const result = await this.recordBll.count({ spaceId, entityId, filter })
-  return result
+  async count({spaceId, entityId, filter, options}: RecordCountQueryRequest) {
+    const result = await this.recordBll.count({ spaceId, entityId, filter, options })
+    return result
   }
 }
