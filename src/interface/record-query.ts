@@ -1,4 +1,3 @@
-import { QueryResult } from './query'
 import { RecordData } from './record'
 
 // TODO
@@ -10,6 +9,7 @@ export interface RecordQuery<FilterType, SortType> {
   sort?: SortType
   skip?: number
   limit?: number
+  options?: any
 }
 
 export interface RecordQueryBll<FilterType, SortType> {

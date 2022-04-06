@@ -14,6 +14,7 @@ declare module 'config' {
       HTTP: Record<string, any>
       [x: string]: Record<string, any>
     }
+    MONGODB_QUERY_OPTIONS: { [x: string]: any }
   }
 
   const config: Config

@@ -113,7 +113,7 @@ export class RecordAPI {
       logger.error(err, 'pipeline-error')
     })
   })
-  async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter }: RecordQueryRequest) {
+  async query({ spaceId, entityId, limit = 10, skip = 0, sort, filter, options }: RecordQueryRequest) {
     const resp = await this.recordBll.query({
       spaceId,
       entityId,
@@ -121,6 +121,7 @@ export class RecordAPI {
       skip,
       sort,
       filter,
+      options,
     })
 
     return resp
