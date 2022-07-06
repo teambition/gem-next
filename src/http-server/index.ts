@@ -1,16 +1,22 @@
 import * as Koa from 'koa'
+import * as path from 'path'
+import * as http from 'http'
 import * as koaBody from 'koa-bodyparser'
 import * as createError from 'http-errors'
-import * as http from 'http'
-import router from './router'
+import { getRouterSync } from '@tng/koa-controller'
 import { loggerMW } from './logger'
 import { errorHandlerMW } from './error-handler'
+import { createLogger } from '../service/logger'
 
 export const app = new Koa()
 app.use(koaBody())
 app.use(loggerMW())
 app.use(errorHandlerMW())
-app.use(router.routes())
+app.use(getRouterSync({
+  files: path.resolve(__dirname, '../api/**/*.[jt]s'),
+  logger: createLogger({ label: 'http-router' }),
+}).routes())
+
 app.use((ctx) => {
   if (!ctx.matched.length) throw createError(404, 'api not found')
 })

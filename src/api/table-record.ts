@@ -1,7 +1,7 @@
 import { } from 'koa'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, post, validator } from '../http-server/decorator'
+import { after, before, controller, post } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 
 interface RecordQueryRequest {
@@ -40,9 +40,9 @@ interface RecordRemoveRequest {
 }
 
 // @controller('/table-record')
-@after(async ctx => {
-  // console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
-})
+// @after(async ctx => {
+//   // console.log('req', ctx.method, ctx.url, ctx.status, ctx.state)
+// })
 export class TableRecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 

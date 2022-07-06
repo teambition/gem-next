@@ -1,8 +1,8 @@
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, MiddlewareFn, post, validator } from '../http-server/decorator'
+import { after, before, controller, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
-import recordAuthBll from '../bll/record-auth'
+import { authMW } from '../bll/auth'
 
 interface RecordCountQueryRequest {
   spaceId: string
@@ -18,12 +18,8 @@ export function resultMW(): MiddlewareFn {
 }
 
 @controller('/api/record')
-@before(async (ctx) => {
-  let token = ctx.get('authorization') as string || ''
-  token = token.replace(/^Bearer /, '')
-  const { spaceId, entityId } = ctx.request.body as any
-  recordAuthBll.verify({ spaceId, entityId, token })
-})
+@state()
+@before(authMW())
 export class RecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 
@@ -32,7 +28,7 @@ export class RecordAPI {
   }
 
   @post('/count')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
@@ -40,7 +36,7 @@ export class RecordAPI {
       entityId: { type: 'string' },
       filter: { type: 'object' },
       options: { type: 'object' },
-    }
+    },
   })
   @after(resultMW())
   async count({spaceId, entityId, filter, options}: RecordCountQueryRequest) {

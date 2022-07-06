@@ -3,12 +3,13 @@ import { promisify } from 'util'
 import { Transform, pipeline } from 'stream'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, middleware, MiddlewareFn, post, validator } from '../http-server/decorator'
+import { after, before, controller, middleware, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
 import { MongodbCollectionRecordTransferBllImpl } from '../bll/mongodb-collection-engine/record-transfer'
+import { authMW } from '../bll/auth'
 
 interface RecordTransferRequest {
   id?: string
@@ -26,17 +27,13 @@ export function resultMW(): MiddlewareFn {
 }
 
 @controller('/api/record')
-@before(async (ctx) => {
-  let token = ctx.get('authorization') as string || ''
-  token = token.replace(/^Bearer /, '')
-  const { spaceId, entityId } = ctx.request.body as any
-  recordAuthBll.verify({ spaceId, entityId, token })
-})
+@state()
+@before(authMW())
 export class RecordTransferAPI {
   private recordTransferBll = new MongodbCollectionRecordTransferBllImpl()
 
   @post('/transfer')
-  @validator({
+  @validateState({
     required: ['spaceId', 'entityId', 'targetSpaceId', 'targetEntityId'],
     properties: {
       id: { type: 'string' },

@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { controller, get, before } from '../http-server/decorator'
+import { controller, get, before } from '@tng/koa-controller'
 import { createLogger } from '../service/logger'
 const logger = createLogger({ label: 'version' })
 

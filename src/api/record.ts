@@ -5,12 +5,13 @@ import * as createHttpError from 'http-errors'
 import * as config from 'config'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, middleware, MiddlewareFn, post, validator } from '../http-server/decorator'
+import { after, before, controller, middleware, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
 import { createLogger } from '../service/logger'
+import { authMW } from '../bll/auth'
 
 
 const logger = createLogger({ label: 'record-api' })
@@ -70,12 +71,8 @@ export function resultMW(): MiddlewareFn {
 }
 
 @controller('/api/record')
-@before(async (ctx) => {
-  let token = ctx.get('authorization') as string || ''
-  token = token.replace(/^Bearer /, '')
-  const { spaceId, entityId } = ctx.request.body as any
-  recordAuthBll.verify({ spaceId, entityId, token })
-})
+@state()
+@before(authMW())
 export class RecordAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 
@@ -84,7 +81,7 @@ export class RecordAPI {
   }
 
   @post('/query')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
@@ -138,7 +135,7 @@ export class RecordAPI {
   }
 
   @post('/query-array')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
@@ -179,7 +176,7 @@ export class RecordAPI {
   }
 
   @post('/create')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {
@@ -203,7 +200,7 @@ export class RecordAPI {
   }
 
   @post('/update')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['id', 'spaceId', 'entityId', 'update'],
     properties: {
@@ -228,7 +225,7 @@ export class RecordAPI {
   }
 
   @post('/remove')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['id', 'spaceId', 'entityId'],
     properties: {
@@ -250,7 +247,7 @@ export class RecordAPI {
   }
 
   @post('/batch')
-  @validator({
+  @validateState({
     type: 'object',
     required: ['spaceId', 'entityId'],
     properties: {

@@ -12,7 +12,7 @@ export class EntityBllImpl implements EntityBll {
     return this.dbClient.db()
   }
 
-  private get collection(): MongodbCollection<Omit<Entity, "id"> & { _id: ObjectId, isDeleted: boolean }> {
+  private get collection(): MongodbCollection<Omit<Entity, "id"> & { _id?: ObjectId, isDeleted: boolean }> {
     return this.db.collection('entity')
   }
 

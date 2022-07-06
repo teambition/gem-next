@@ -5,11 +5,11 @@ import * as config from 'config'
 export function createLogger({
   label = 'app',
   options,
-  destination = 1,
+  // destination = 1,
 }: {
   label?: string
   options?: pino.LoggerOptions
-  destination?: string | number | pino.DestinationObjectOptions | pino.DestinationStream | NodeJS.WritableStream
+  // destination?: string | number | pino.DestinationObjectOptions | pino.DestinationStream | NodeJS.WritableStream
 } = {}) {
   return pino(merge({
     base: { label },
@@ -24,7 +24,7 @@ export function createLogger({
         ignore: 'label',
       },
     },
-  }, config.LOGGERS?.base, config.LOGGERS && config.LOGGERS[label], options), pino.destination(destination))
+  }, config.LOGGERS?.base, config.LOGGERS?.[label], options))
 }
 
 export default createLogger
