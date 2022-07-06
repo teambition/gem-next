@@ -6,3 +6,6 @@ MONGODB:
 # LOGGERS:
 #   base:
 #     transport: null
+# MONGODB_QUERY_OPTIONS:
+  # maxTimeMs: 10000 # mongodb 查询超时时间
+  # maxResultWindow: 10000 # 最大查询数的限制
