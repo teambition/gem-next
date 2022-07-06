@@ -48,6 +48,9 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
     if (maxTimeMs) cursor.maxTimeMS(maxTimeMs)
 
+    // add hint for query
+    if (options?.hint) cursor.hint(options.hint)
+
     // cursor transform to RecordData
     return this.stream(cursor)
   }
