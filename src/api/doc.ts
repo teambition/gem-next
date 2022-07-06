@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import * as yaml from 'js-yaml'
 import * as config from 'config'
-import { before, controller, get } from '../http-server/decorator'
+import { before, controller, get } from '@tng/koa-controller'
 import * as createHttpError from 'http-errors'
 
 let openapi: any
