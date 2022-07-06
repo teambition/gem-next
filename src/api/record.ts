@@ -1,6 +1,8 @@
 import { Context } from 'koa'
 import { promisify } from 'util'
 import { Transform, pipeline } from 'stream'
+import * as createHttpError from 'http-errors'
+import * as config from 'config'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
 import { after, before, controller, middleware, MiddlewareFn, post, validator } from '../http-server/decorator'
@@ -10,8 +12,10 @@ import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
 import { createLogger } from '../service/logger'
 
+
 const logger = createLogger({ label: 'record-api' })
 const pipelinePromise = promisify(pipeline)
+const maxResultWindow = config.MONGODB_QUERY_OPTIONS?.maxResultWindow || 10000
 
 interface RecordQueryRequest {
   spaceId: string
@@ -88,9 +92,15 @@ export class RecordAPI {
       entityId: { type: 'string' },
       filter: { type: 'object' },
       sort: { type: 'object' },
-      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
-      limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      skip: { type: 'integer', minimum: 0, default: 0 },
+      limit: { type: 'integer', minimum: 0, default: 10 },
       disableBsonEncode: { type: 'boolean', default: false },
+    }
+  })
+  @before(async (ctx) => {
+    const { skip, limit } = ctx.request.body as any
+    if (skip + limit > maxResultWindow) {
+      throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
   })
   @after(async (ctx) => {
@@ -136,10 +146,16 @@ export class RecordAPI {
       entityId: { type: 'string' },
       filter: { type: 'object' },
       sort: { type: 'object' },
-      skip: { type: 'integer', minimum: 0, maximum: 10000, default: 0 },
-      limit: { type: 'integer', minimum: 0, maximum: 10000, default: 10 },
+      skip: { type: 'integer', minimum: 0, default: 0 },
+      limit: { type: 'integer', minimum: 0, default: 10 },
       options: { type: 'object' },
       disableBsonEncode: { type: 'boolean', default: false },
+    }
+  })
+  @before(async (ctx) => {
+    const { skip, limit } = ctx.request.body as any
+    if (skip + limit > maxResultWindow) {
+      throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
   })
   @after(async (ctx) => {
