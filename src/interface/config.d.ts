@@ -15,6 +15,12 @@ declare module 'config' {
       [x: string]: Record<string, any>
     }
     MONGODB_QUERY_OPTIONS: { [x: string]: any }
+    SERVER_RATELIMIT: { [x: string]: number }
+    REDIS: {
+      CLUSTER?: any
+      HOST?: string
+      CONNECTION_OPTIONS?: { [x: string]: any }
+    }
   }
 
   const config: Config

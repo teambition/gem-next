@@ -9,3 +9,5 @@ MONGODB:
 # MONGODB_QUERY_OPTIONS:
   # maxTimeMs: 10000 # mongodb 查询超时时间
   # maxResultWindow: 10000 # 最大查询数的限制
+SERVER_RATELIMIT:
+  'organization:[0-9a-fA-F]{24}-project:[0-9a-fA-F]{24}': 1500
