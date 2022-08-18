@@ -7,9 +7,9 @@
     "build": "tsc",
     "dev": "nodemon -w src -w config -e ts,js,yml,json -x ts-node src/app",
     "start": "node lib/app",
-    "test": "mocha",
+    "test": "NODE_ENV=test mocha",
     "lint": "eslint src",
-    "test:coverage": "nyc mocha"
+    "test:coverage": "NODE_ENV=test nyc mocha"
   },
   "author": "",
   "license": "ISC",

@@ -1,0 +1,7 @@
+---
+PORT: 3000
+MONGODB:
+  URL: 'mongodb://127.0.0.1:27017/test'
+SERVER_RATELIMIT:
+  '^spaceId:000000000000000000000000-entityId:000000000000000000000000$': 5
+  '^spaceId:[0-9a-fA-F]{24}-entityId:[0-9a-fA-F]{24}$': 10

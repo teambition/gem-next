@@ -15,6 +15,9 @@ declare module 'config' {
       [x: string]: Record<string, any>
     }
     MONGODB_QUERY_OPTIONS: { [x: string]: any }
+    SERVER_RATELIMIT: { [x: string]: number }
+    SERVER_RATELIMIT_RESET_INTERVAL_MS?: number
+    SERVER_RATELIMIT_RETRY_INTERVAL_MS?: number
   }
 
   const config: Config

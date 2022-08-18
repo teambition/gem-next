@@ -9,3 +9,9 @@ MONGODB:
 # MONGODB_QUERY_OPTIONS:
   # maxTimeMs: 10000 # mongodb 查询超时时间
   # maxResultWindow: 10000 # 最大查询数的限制
+# SERVER_RATELIMIT:
+#   '^spaceId:[0-9a-fA-F]{24}-entityId:[0-9a-fA-F]{24}$': 10 # spaceId + entityId 支持正则表达式
+# 单机限流时间
+# SERVER_RATELIMIT_RESET_INTERVAL_MS: 20
+# 单机限流重试时间
+# SERVER_RATELIMIT_RETRY_INTERVAL_MS: 10
