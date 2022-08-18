@@ -1,7 +1,7 @@
 ---
 PORT: 3000
 MONGODB:
-  URL: 'mongodb://127.0.0.1:27017/test'
+  URL: mongodb://root:qjRMpSM5KKDPN2kR@dds-hp3bb5e07b70c5441.mongodb.huhehaote.rds.aliyuncs.com:3717,dds-hp3bb5e07b70c5442.mongodb.huhehaote.rds.aliyuncs.com:3717/gem-next?authSource=admin&replicaSet=mgset-422692551
 # for production
 # LOGGERS:
 #   base:
@@ -9,3 +9,11 @@ MONGODB:
 # MONGODB_QUERY_OPTIONS:
   # maxTimeMs: 10000 # mongodb 查询超时时间
   # maxResultWindow: 10000 # 最大查询数的限制
+SERVER_RATELIMIT:
+  'spaceId-entityId': 1500 # spaceId + entityId 支持正则表达式
+  'spaceId:000000000000000000000000-entityId:000000000000000000000000$': 5
+  '^spaceId:[0-9a-fA-F]{24}-entityId:[0-9a-fA-F]{24}$': 10 # spaceId + entityId 支持正则表达式
+# 单机限流限流时间
+SERVER_RATELIMIT_RESET_INTERVAL_MS: 20
+# 单机限流重试时间
+SERVER_RATELIMIT_RETRY_INTERVAL_MS: 10
