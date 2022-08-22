@@ -12,6 +12,7 @@ import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
 import { createLogger } from '../service/logger'
 import { authMW } from '../bll/auth'
+import { checkEntityRateLimitMW } from '../bll/server-ratelimit'
 
 
 const logger = createLogger({ label: 'record-api' })
@@ -94,6 +95,7 @@ export class RecordAPI {
       disableBsonEncode: { type: 'boolean', default: false },
     }
   })
+  @before(checkEntityRateLimitMW())
   @before(async (ctx) => {
     const { skip, limit } = ctx.request.body as any
     if (skip + limit > maxResultWindow) {
@@ -149,6 +151,7 @@ export class RecordAPI {
       disableBsonEncode: { type: 'boolean', default: false },
     }
   })
+  @before(checkEntityRateLimitMW())
   @before(async (ctx) => {
     const { skip, limit } = ctx.request.body as any
     if (skip + limit > maxResultWindow) {

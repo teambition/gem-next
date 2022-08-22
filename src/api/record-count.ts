@@ -3,6 +3,7 @@ import { RecordStorageBll } from '../interface/record-storage'
 import { after, before, controller, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 import { authMW } from '../bll/auth'
+import { checkEntityRateLimitMW } from '../bll/server-ratelimit'
 
 interface RecordCountQueryRequest {
   spaceId: string
@@ -38,6 +39,7 @@ export class RecordAPI {
       options: { type: 'object' },
     },
   })
+  @before(checkEntityRateLimitMW())
   @after(resultMW())
   async count({spaceId, entityId, filter, options}: RecordCountQueryRequest) {
     const result = await this.recordBll.count({ spaceId, entityId, filter, options })
