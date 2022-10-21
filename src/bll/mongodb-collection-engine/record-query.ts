@@ -51,6 +51,9 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     // add hint for query
     if (options?.hint) cursor.hint(options.hint)
 
+    // add readPreference for query
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+
     // cursor transform to RecordData
     return this.stream(cursor)
   }
