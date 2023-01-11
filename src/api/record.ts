@@ -1,13 +1,11 @@
-import { Context } from 'koa'
 import { promisify } from 'util'
 import { Transform, pipeline } from 'stream'
 import * as createHttpError from 'http-errors'
 import * as config from 'config'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, middleware, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
+import { after, before, controller, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
-import recordAuthBll from '../bll/record-auth'
 import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
 import { createLogger } from '../service/logger'
@@ -19,12 +17,16 @@ const logger = createLogger({ label: 'record-api' })
 const pipelinePromise = promisify(pipeline)
 const maxResultWindow = config.MONGODB_QUERY_OPTIONS?.maxResultWindow || 10000
 
+interface PatchSort {
+  order: 1| -1,
+  falseField: string
+}
 interface RecordQueryRequest {
   spaceId: string
   entityId: string
   limit?: number
   skip?: number
-  sort?: any
+  sort?: {[x: string]: 1 | -1 | PatchSort }
   filter?: any
   options?: any
 }
@@ -95,7 +97,6 @@ export class RecordAPI {
       disableBsonEncode: { type: 'boolean', default: false },
     }
   })
-  @before(checkEntityRateLimitMW())
   @before(async (ctx) => {
     const { skip, limit } = ctx.request.body as any
     if (skip + limit > maxResultWindow) {
