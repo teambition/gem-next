@@ -1,7 +1,7 @@
 import { } from 'koa'
 import { RecordQueryBll } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, post } from '@tng/koa-controller'
+import { post } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 
 interface RecordQueryRequest {
