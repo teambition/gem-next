@@ -69,7 +69,7 @@ export function decodeBsonValue(value: any): any {
     assert.ok(isFinite(new Date(value).getTime()))
     return new Date(value)
   }
-  throw new Error(`invalid action ${objKey}`)
+  throw new Error(`invalid action ${JSON.stringify(objKey)}`)
 }
 
 export function encodeBsonValue(value: any): any {
@@ -81,7 +81,7 @@ export function encodeBsonValue(value: any): any {
   if (value instanceof Date) {
     return { $date: value.toISOString() }
   }
-  throw new Error(`invalid value to encode: ${value}`)
+  throw new Error(`invalid value to encode: ${JSON.stringify(value)}`)
 }
 
 export function decodeField(key: string) {

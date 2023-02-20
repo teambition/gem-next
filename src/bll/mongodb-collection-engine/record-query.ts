@@ -1,15 +1,25 @@
 import * as config from 'config'
 import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
-import { Collection as MongodbCollection, FindCursor as MongodbCursor, Db as MongodbDatabase, MongoClient } from 'mongodb'
-import { RecordData } from '../../interface/record'
+import { Collection as MongodbCollection, FindCursor, Db as MongodbDatabase, MongoClient, AggregationCursor } from 'mongodb'
+import { RecordData, GroupDate } from '../../interface/record'
 import { transform, decodeBsonQuery, decodeField } from './util'
-import { RecordQueryBll, RecordQuery } from '../../interface/record-query'
+import { RecordQueryBll, RecordQuery, RecordAggregateByPatchSort, RecordGroup } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
 import { createLogger } from '../../service/logger'
 const logger = createLogger({ label: 'mongodb-collection-engine' })
 
 const pipelinePromise = promisify(pipeline)
+
+enum PipelineKeyEnum {
+  $match,
+  $addFields,
+  $group,
+  $project,
+  $sort,
+  $limit,
+  $skip
+}
 
 export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, any> {
   private dbClient: MongoClient
@@ -32,15 +42,17 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       spaceId,
       entityId,
     }, conds)
+
+    const { addFields, singleSort } = this.formatSort(sort)
+    if (addFields) {
+      return this.aggregateByFlaseField({ conds, sort: singleSort, addFields, limit, skip, options })
+    }
+
+
     const cursor = this.collection.find(conds)
 
     // TODO: this is unsafe to use user's sort as mongo sort directly
-    if (sort) {
-      cursor.sort(Object.keys(sort).reduce<Record<string, any>>((r, k) => {
-        const sortOrder = sort[k] || 1
-        return Object.assign(r, { [decodeField(k)]: sortOrder })
-      }, {}))
-    }
+    if (singleSort) cursor.sort(singleSort)
     if (skip) cursor.skip(skip)
     if (limit) cursor.limit(limit)
 
@@ -58,12 +70,81 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.stream(cursor)
   }
 
-  private stream(cursor: MongodbCursor): AsyncIterable<RecordData> {
+  async aggregateByFlaseField ({ conds, addFields, sort, limit, skip = 0, options = {} }: RecordAggregateByPatchSort<any, any>): Promise<AsyncIterable<RecordData>> {
+    const pipeline: {[key in keyof typeof PipelineKeyEnum]?: any}[] = [{
+      $match: conds
+    }]
+    const aggOption = {}
+
+    if (addFields) {
+      pipeline.push({
+        $addFields: addFields
+      })
+    }
+    if (sort) {
+      pipeline.push({
+        $sort: sort
+      })
+    }
+    if (skip) {
+      pipeline.push({
+        $skip: skip
+      })
+    }
+    if (limit) {
+      pipeline.push({
+        $limit: limit
+      })
+    }
+
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) {
+      Object.assign(aggOption, { maxTimeMS: maxTimeMs })
+    }
+
+    // add hint for query
+    if (options?.hint) {
+      Object.assign(aggOption, { hint: options.hint })
+    }
+
+    const cursor = this.collection.aggregate(pipeline, aggOption)
+
+    // add readPreference for aggregate
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+
+    return this.stream(cursor)
+  }
+
+  formatSort(sort = {}) {
+    const addFields = {}
+    const singleSort = {}
+    Object.keys(sort).map(key => {
+      if (typeof sort[key] === 'object' && !Array.isArray(sort[key])) {
+        Object.keys(sort[key]).map(subKey => {
+          if (subKey === 'order') {
+            singleSort[decodeField(key + ':pos')] = sort[key][subKey] | 1
+          } else if (subKey === 'falseField') {
+            addFields[decodeField(key + ':pos')] = {
+              $ifNull: ['$' + decodeField(key), '$' + decodeField(sort[key][subKey])]
+            }
+          }
+        })
+      } else {
+        singleSort[decodeField(key)] = sort[key] | 1
+      }
+    })
+    return {
+      addFields: Object.keys(addFields).length ? addFields : null,
+      singleSort: Object.keys(singleSort).length ? singleSort : null
+    }
+  }
+
+  private stream(cursor: FindCursor | AggregationCursor, transformDoc = true) {
     const result = new StreamTransform({
       readableObjectMode: true,
       objectMode: true,
       transform(doc: any, _, cb) {
-        cb(null, transform(doc))
+        cb(null, transformDoc ? transform(doc) : doc)
       }
     })
     // cursor.pipe(transform)
@@ -83,6 +164,60 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
 
     const result = await this.collection.countDocuments(conds, Object.assign({}, config.MONGODB_QUERY_OPTIONS, options))
     return result
+  }
+
+  async group ({ spaceId, entityId, filter, group = {}, sort, limit, options }: RecordGroup<any, any>): Promise<AsyncIterable<GroupDate>> {
+    let conds = decodeBsonQuery(filter || {})
+    conds = Object.assign({
+      spaceId,
+      entityId,
+    }, conds)
+
+    const { groupField, aggField, aggFunc = 'sum' } = group
+    const pipeline: {[key in keyof typeof PipelineKeyEnum]?: any}[] = [{
+      $match: conds
+    }, {
+      $group: {
+        _id: groupField ? `$${decodeField(groupField)}` : null,
+        [aggFunc]: { [`$${aggFunc}`]: aggField || 1 }
+      }
+    }, {
+      $project: {
+        _id: 0,
+        [aggFunc]: 1,
+        [groupField || 'id']: '$_id',
+      },
+    }]
+
+    if (sort) {
+      pipeline.push({
+        $sort: sort
+      })
+    }
+
+    if (limit) {
+      pipeline.push({
+        $limit: limit
+      })
+    }
+
+    const aggOption = {}
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) {
+      Object.assign(aggOption, { maxTimeMS: maxTimeMs })
+    }
+
+    // add hint for aggregate
+    if (options?.hint) {
+      Object.assign(aggOption, { hint: options.hint })
+    }
+
+    const cursor = this.collection.aggregate(pipeline, aggOption)
+
+    // add readPreference for aggregate
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+
+    return this.stream(cursor, false)
   }
 }
 

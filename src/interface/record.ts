@@ -11,3 +11,8 @@ export interface RecordData {
   createTime: Date
   cf: RecordCustomfieldMap
 }
+
+
+export interface GroupDate {
+  [x: string]: any
+}

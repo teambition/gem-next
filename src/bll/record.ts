@@ -1,4 +1,4 @@
-import { RecordData } from '../interface/record'
+import { RecordData, GroupDate } from '../interface/record'
 import { RecordQuery, RecordQueryBll } from '../interface/record-query'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../interface/record-storage'
 import mongodbCollectionRecordStorageBll from './mongodb-collection-engine/record-storage'
@@ -46,6 +46,10 @@ export class RecordBllImpl implements RecordStorageBll, RecordQueryBll<any, any>
     // TODO: get entity.engineId and find engine
     // TODO: get engineClass Info get queryEngine or storageEngine
     return this.recordQueryBll.count(query)
+  }
+
+  async group(query: RecordQuery<any, any>): Promise<AsyncIterable<GroupDate>> {
+    return this.recordQueryBll.group(query)
   }
 }
 

@@ -1,4 +1,4 @@
-import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase, ObjectId } from 'mongodb'
+import { Collection as MongodbCollection, MongoClient, Db as MongodbDatabase } from 'mongodb'
 import dbClient from '../../service/mongodb'
 
 export class MongodbCollectionRecordTransferBllImpl {
