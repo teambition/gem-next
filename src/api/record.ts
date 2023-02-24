@@ -103,6 +103,16 @@ export class RecordAPI {
       throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
   })
+  @before(async (ctx) => {
+    let { sort = {} } = ctx.request.body as any
+    sort = Object.keys(sort).reduce((map, key) => {
+      map[key] = {
+        falseField: sort[key]?.falseField || null,
+        order: sort[key]?.order || sort[key] || 1,
+      }
+      return map
+    }, {})
+  })
   @after(async (ctx) => {
     if (ctx.state.disableBsonEncode) return
     const origin: AsyncIterable<RecordData> = ctx.body as any
@@ -158,6 +168,16 @@ export class RecordAPI {
     if (skip + limit > maxResultWindow) {
       throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
+  })
+  @before(async (ctx) => {
+    let { sort = {} } = ctx.request.body as any
+    sort = Object.keys(sort).reduce((map, key) => {
+      map[key] = {
+        falseField: sort[key]?.falseField || null,
+        order: sort[key]?.order || sort[key] || 1,
+      }
+      return map
+    }, {})
   })
   @after(async (ctx) => {
     if (ctx.state.disableBsonEncode) return
