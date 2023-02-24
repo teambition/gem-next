@@ -41,6 +41,13 @@ export interface Group {
   aggFunc?: 'sum' | 'count' | 'avg' | 'max' | 'min'
 }
 
+export interface Sort {
+  [key: string]: {
+    falseField: string
+    order: 1 | -1
+  }
+}
+
 export interface RecordQueryBll<FilterType, SortType> {
   query(query: RecordQuery<FilterType, SortType>): Promise<AsyncIterable<RecordData>>
   count?(query: RecordQuery<FilterType, SortType>): Promise<number>

@@ -48,7 +48,8 @@ describe('mongodb-collection-engine/util', () => {
     decodeBsonQueryTest('{key:{$lte: value}}', {a: {$lte: 'b'}}, {$and: [{'cf:a': {$lte: 'b'}}]})
     decodeBsonQueryTest('{key:{$in: [value]}}', {a: {$in: ['b']}}, {$and: [{'cf:a': {$in: ['b']}}]})
     decodeBsonQueryTest('{key:{$nin: [value]}}', {a: {$nin: ['b']}}, {$and: [{'cf:a': {$nin: ['b']}}]})
-    decodeBsonQueryTest('{key:{$like: value}}', {a: {$like: 'b'}}, {$and: [{'cf:a': {$regex: 'b'}}]})
+    decodeBsonQueryTest('{key:{$like: value}}', {a: {$like: 'b'}}, {$and: [{'cf:a': {$regex: 'b', '$options': 'i'}}]})
+    decodeBsonQueryTest('{key:{$nlike: value}}', {a: {$nlike: 'b'}}, {$and: [{'cf:a': {$not: {$regex: 'b', '$options': 'i'}}}]})
     decodeBsonQueryTest('{$and: [{key:value}]}', {$and: [{a: 'b'}]}, {$and: [{$and: [{'cf:a': {$eq: 'b'}}]}]})
     decodeBsonQueryTest('{$or: [{key:value}]}', {$or: [{a: 'b'}]}, {$or: [{$and: [{'cf:a': {$eq: 'b'}}]}]})
 

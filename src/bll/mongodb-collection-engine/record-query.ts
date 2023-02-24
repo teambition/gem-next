@@ -4,7 +4,7 @@ import { Transform as StreamTransform, pipeline } from 'stream'
 import { Collection as MongodbCollection, FindCursor, Db as MongodbDatabase, MongoClient, AggregationCursor } from 'mongodb'
 import { RecordData, GroupDate } from '../../interface/record'
 import { transform, decodeBsonQuery, decodeField } from './util'
-import { RecordQueryBll, RecordQuery, RecordAggregateByPatchSort, RecordGroup } from '../../interface/record-query'
+import { RecordQueryBll, RecordQuery, RecordAggregateByPatchSort, RecordGroup, Sort } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
 import { createLogger } from '../../service/logger'
 const logger = createLogger({ label: 'mongodb-collection-engine' })
@@ -35,7 +35,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.db.collection('record')
   }
 
-  async query({ filter, sort, spaceId, entityId, limit, skip = 0, options = {} }: RecordQuery<any, any>): Promise<AsyncIterable<RecordData>> {
+  async query({ filter, sort, spaceId, entityId, limit, skip = 0, options = {} }: RecordQuery<any, Sort>): Promise<AsyncIterable<RecordData>> {
     // filter transform to mongo query condition
     let conds = decodeBsonQuery(filter || {})
     conds = Object.assign({
@@ -43,9 +43,20 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       entityId,
     }, conds)
 
-    const { addFields, singleSort } = this.formatSort(sort)
-    if (addFields) {
-      return this.aggregateByFlaseField({ conds, sort: singleSort, addFields, limit, skip, options })
+    const addFields = {}
+    const singleSort = {}
+
+    Object.entries(sort || {}).map(([key, value]) => {
+      if (value.falseField) {
+        addFields[decodeField(key)] = {
+          $ifNull: ['$' + decodeField(key), '$' + decodeField(value.falseField)]
+        }
+      }
+      singleSort[decodeField(key)] = value.order || 1
+    })
+
+    if (Object.keys(addFields).length) {
+      return this.aggregateByFalseField({ conds, sort: singleSort, addFields, limit, skip, options })
     }
 
 
@@ -70,7 +81,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     return this.stream(cursor)
   }
 
-  async aggregateByFlaseField ({ conds, addFields, sort, limit, skip = 0, options = {} }: RecordAggregateByPatchSort<any, any>): Promise<AsyncIterable<RecordData>> {
+  async aggregateByFalseField ({ conds, addFields, sort, limit, skip = 0, options = {} }: RecordAggregateByPatchSort<any, any>): Promise<AsyncIterable<RecordData>> {
     const pipeline: {[key in keyof typeof PipelineKeyEnum]?: any}[] = [{
       $match: conds
     }]
@@ -113,30 +124,6 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (options?.readPreference) cursor.withReadPreference(options.readPreference)
 
     return this.stream(cursor)
-  }
-
-  formatSort(sort = {}) {
-    const addFields = {}
-    const singleSort = {}
-    Object.keys(sort).map(key => {
-      if (typeof sort[key] === 'object' && !Array.isArray(sort[key])) {
-        Object.keys(sort[key]).map(subKey => {
-          if (subKey === 'order') {
-            singleSort[decodeField(key + ':pos')] = sort[key][subKey] | 1
-          } else if (subKey === 'falseField') {
-            addFields[decodeField(key + ':pos')] = {
-              $ifNull: ['$' + decodeField(key), '$' + decodeField(sort[key][subKey])]
-            }
-          }
-        })
-      } else {
-        singleSort[decodeField(key)] = sort[key] | 1
-      }
-    })
-    return {
-      addFields: Object.keys(addFields).length ? addFields : null,
-      singleSort: Object.keys(singleSort).length ? singleSort : null
-    }
   }
 
   private stream(cursor: FindCursor | AggregationCursor, transformDoc = true) {

@@ -13,6 +13,7 @@ const QUERY_OPS = [
   '$in',
   '$nin',
   '$like',
+  '$nlike',
 ]
 const MANIPULDATE_OPS = [
   '$addToSet', // { $addToSet: { field: { $each: [] } } }
@@ -127,7 +128,26 @@ export function decodeBsonQuery(query: Record<string, any> = {}): any {
 
     // special field value format for _id
     if (field === '_id') value = new ObjectId(value)
-    if (op === '$like') op = '$regex'
+    if (op === '$like') {
+      result.$and.push({
+        [field]: { 
+          $regex: value,
+          $options: 'i'
+        }
+      })
+      continue
+    }
+    if (op === '$nlike') {
+      result.$and.push({
+        [field]: { 
+          $not: {
+            $regex: value,
+            $options: 'i'
+          }
+        }
+      })
+      continue
+    }
     result.$and.push({ [field]: { [op]: value } })
   }
 
