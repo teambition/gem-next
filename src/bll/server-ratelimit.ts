@@ -62,9 +62,14 @@ export function checkEntityRateLimitMW ({ memoryStore = globalMemoryStore, leftT
     const { spaceId, entityId } = ctx.request.body
     if (!spaceId || !entityId) return
 
-    const prefixKey = spaceId + '-' + entityId
+    let prefixKey = spaceId + '-' + entityId
+    // implement controller
+    if (ctx.routerName) {
+      prefixKey = prefixKey + '-' + ctx.routerName
+    }
 
-    const key = Object.keys(config.SERVER_RATELIMIT).find(key => new RegExp(key).test(prefixKey)) // 优先匹配到的规则优先级高
+    // 先匹配到的规则优先级高
+    const key = Object.keys(config.SERVER_RATELIMIT).find(key => new RegExp(key).test(prefixKey))
     const limitCount = config.SERVER_RATELIMIT?.[key]
     if (!limitCount) return
 
