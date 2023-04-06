@@ -21,7 +21,7 @@ export function resultMW(): MiddlewareFn {
 @controller('/api/record')
 @state()
 @before(authMW())
-export class RecordAPI {
+export class RecordCountAPI {
   private recordBll: RecordStorageBll & RecordQueryBll<any, any>
 
   constructor(options: { recordBll?: RecordStorageBll & RecordQueryBll<any, any> } = {}) {
