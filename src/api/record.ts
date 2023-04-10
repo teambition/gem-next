@@ -98,14 +98,14 @@ export class RecordAPI {
     }
   })
   @before(async (ctx) => {
-    const { skip, limit } = ctx.request.body as any
+    const { skip, limit } = ctx.state as any
     if (skip + limit > maxResultWindow) {
       throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
   })
   @before(async (ctx) => {
-    let { sort = {} } = ctx.request.body as any
-    sort = Object.keys(sort).reduce((map, key) => {
+    const { sort = {} } = ctx.state as any
+    ctx.state.sort = Object.keys(sort).reduce((map, key) => {
       map[key] = {
         falseField: sort[key]?.falseField || null,
         order: sort[key]?.order || sort[key] || 1,
@@ -164,14 +164,14 @@ export class RecordAPI {
   })
   @before(checkEntityRateLimitMW())
   @before(async (ctx) => {
-    const { skip, limit } = ctx.request.body as any
+    const { skip, limit } = ctx.state as any
     if (skip + limit > maxResultWindow) {
       throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
     }
   })
   @before(async (ctx) => {
-    let { sort = {} } = ctx.request.body as any
-    sort = Object.keys(sort).reduce((map, key) => {
+    const { sort = {} } = ctx.state as any
+    ctx.state.sort = Object.keys(sort).reduce((map, key) => {
       map[key] = {
         falseField: sort[key]?.falseField || null,
         order: sort[key]?.order || sort[key] || 1,
