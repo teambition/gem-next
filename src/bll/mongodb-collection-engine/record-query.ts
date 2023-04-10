@@ -59,7 +59,6 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       return this.aggregateByFalseField({ conds, sort: singleSort, addFields, limit, skip, options })
     }
 
-
     const cursor = this.collection.find(conds)
 
     // TODO: this is unsafe to use user's sort as mongo sort directly
