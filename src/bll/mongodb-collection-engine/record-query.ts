@@ -188,17 +188,16 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     }
 
     const aggOption = {}
-    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
-    if (maxTimeMs) {
-      Object.assign(aggOption, { maxTimeMS: maxTimeMs })
-    }
-
     // add hint for aggregate
     if (options?.hint) {
       Object.assign(aggOption, { hint: options.hint })
     }
 
     const cursor = this.collection.aggregate(pipeline, aggOption)
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) {
+      cursor.maxTimeMS(maxTimeMs)
+    }
 
     // add readPreference for aggregate
     if (options?.readPreference) cursor.withReadPreference(options.readPreference)
