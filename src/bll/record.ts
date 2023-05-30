@@ -1,5 +1,5 @@
 import { RecordData, GroupDate } from '../interface/record'
-import { RecordQuery, RecordQueryBll } from '../interface/record-query'
+import { RecordQuery, RecordQueryBll, FindByIdQuery } from '../interface/record-query'
 import { CreateRecord, RecordStorageBll, RemoveRecord, UpdateRecord } from '../interface/record-storage'
 import mongodbCollectionRecordStorageBll from './mongodb-collection-engine/record-storage'
 import mongodbCollectionRecordQueryBll from './mongodb-collection-engine/record-query'
@@ -50,6 +50,10 @@ export class RecordBllImpl implements RecordStorageBll, RecordQueryBll<any, any>
 
   async group(query: RecordQuery<any, any>): Promise<AsyncIterable<GroupDate>> {
     return this.recordQueryBll.group(query)
+  }
+
+  async findById(query: FindByIdQuery): Promise<AsyncIterable<RecordData>> {
+    return this.recordQueryBll.findById(query)
   }
 }
 

@@ -5,6 +5,13 @@ export interface Options {
   hint?: string
   readPreference?: string
 }
+export interface FindByIdQuery {
+  id: string
+  skip?: number
+  limit?: number
+  options?: Options
+}
+
 export interface RecordQuery<FilterType, SortType> {
   spaceId: string
   entityId: string
@@ -13,7 +20,7 @@ export interface RecordQuery<FilterType, SortType> {
   sort?: SortType
   skip?: number
   limit?: number
-  options?: any
+  options?: Options
 }
 
 export interface RecordAggregateByPatchSort<FilterType, SortType> {
@@ -22,7 +29,7 @@ export interface RecordAggregateByPatchSort<FilterType, SortType> {
   sort?: SortType
   skip?: number
   limit?: number
-  options?: any
+  options?: Options
 }
 
 export interface RecordGroup<FilterType, SortType> {
@@ -32,7 +39,7 @@ export interface RecordGroup<FilterType, SortType> {
   group?: Group
   sort?: SortType
   limit?: number
-  options?: any
+  options?: Options
 }
 
 export interface Group {
@@ -49,6 +56,7 @@ export interface Sort {
 }
 
 export interface RecordQueryBll<FilterType, SortType> {
+  findById(query: FindByIdQuery): Promise<AsyncIterable<RecordData>>
   query(query: RecordQuery<FilterType, SortType>): Promise<AsyncIterable<RecordData>>
   count?(query: RecordQuery<FilterType, SortType>): Promise<number>
   group?(query: RecordGroup<FilterType, SortType>): Promise<AsyncIterable<GroupDate>>
