@@ -1,5 +1,6 @@
 import { strict as assert } from 'assert'
 import { ObjectId } from 'mongodb'
+import * as config from 'config'
 import { RecordData } from '../../interface/record'
 
 const INTERNAL_KEYS = ['id', 'createTime', 'updateTime']
@@ -128,6 +129,19 @@ export function decodeBsonQuery(query: Record<string, any> = {}): any {
 
     // special field value format for _id
     if (field === '_id') value = new ObjectId(value)
+
+    // mongodb version strict limits
+    if (config.MONGODB.VERSION && config.MONGODB.VERSION <= '4.0.6') {
+      // In 4.0.6 and earlier, could use $not operator with regular expression objects (i.e. /pattern/) but not with $regex operator expressions.
+      if (op === '$nlike') {
+        result.$and.push({
+          [field]: { 
+            $not: new RegExp(value)
+          }
+        })
+        continue
+      }
+    }
     if (op === '$like') {
       result.$and.push({
         [field]: { 
