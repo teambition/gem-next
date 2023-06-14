@@ -7,6 +7,7 @@ declare module 'config' {
     MONGODB: {
       URL: string
       OPTIONS: { [x: string]: any }
+      VERSION?: string
     }
     LOGGERS: {
       base: Record<string, any>
