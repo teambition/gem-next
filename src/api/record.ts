@@ -2,9 +2,9 @@ import { promisify } from 'util'
 import { Transform, pipeline } from 'stream'
 import * as createHttpError from 'http-errors'
 import * as config from 'config'
-import { RecordQueryBll } from '../interface/record-query'
+import { RecordQueryBll, ScanQuery } from '../interface/record-query'
 import { RecordStorageBll } from '../interface/record-storage'
-import { after, before, controller, MiddlewareFn, post, state, validateState } from '@tng/koa-controller'
+import { after, before, controller, MiddlewareFn, get, post, state, validateState } from '@tng/koa-controller'
 import recordBll from '../bll/record'
 import { RecordData } from '../interface/record'
 import { encodeBsonValue } from '../bll/mongodb-collection-engine/util'
@@ -145,6 +145,50 @@ export class RecordAPI {
     })
 
     return resp
+  }
+
+  @post('/scan')
+  @validateState({
+    type: 'object',
+    required: ['filter'],
+    properties: {
+      filter: { type: 'object' },
+      skip: { type: 'integer', minimum: 0, default: 0 },
+      limit: { type: 'integer', minimum: 0, default: 10 },
+      options: { type: 'object' },
+      disableBsonEncode: { type: 'boolean', default: false },
+    }
+  })
+  @before(async (ctx) => {
+    const { skip, limit } = ctx.state as any
+    if (skip + limit > maxResultWindow) {
+      throw createHttpError(400, `Result window is too large, skip + limit must be less than or equal to:[${maxResultWindow}] but was [${skip + limit}]`)
+    }
+  })
+  @after(async (ctx) => {
+    if (ctx.state.disableBsonEncode) return
+    const records = ctx.body as RecordData[]
+    ctx.body = records.map(record => {
+      return {...record, cf: Object.keys(record.cf).reduce((cf, key) => {
+        cf[key] = encodeBsonValue(record.cf[key])
+        return cf
+      }, {})}
+    })
+  })
+  @after(resultMW())
+  async scan({ filter, limit = 10, skip = 0, options }: ScanQuery) {
+    const resp = await this.recordBll.scan({
+      filter,
+      limit,
+      skip,
+      options,
+    })
+
+    const records: RecordData[] = []
+    for await (const doc of resp) {
+      records.push(doc)
+    }
+    return records
   }
 
   @post('/query-array')

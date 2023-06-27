@@ -3,7 +3,7 @@ import { ObjectId } from 'mongodb'
 import * as config from 'config'
 import { RecordData } from '../../interface/record'
 
-const INTERNAL_KEYS = ['id', 'createTime', 'updateTime']
+const INTERNAL_KEYS = ['id', 'createTime', 'updateTime', 'spaceId', 'entityId']
 const QUERY_OPS = [
   '$eq',
   '$ne',

@@ -1,10 +1,10 @@
 import * as config from 'config'
 import { promisify } from 'util'
 import { Transform as StreamTransform, pipeline } from 'stream'
-import { Collection as MongodbCollection, FindCursor, Db as MongodbDatabase, MongoClient, AggregationCursor } from 'mongodb'
+import { Collection as MongodbCollection, FindCursor, Db as MongodbDatabase, MongoClient, AggregationCursor, ReadPreferenceLike, CountDocumentsOptions } from 'mongodb'
 import { RecordData, GroupDate } from '../../interface/record'
 import { transform, decodeBsonQuery, decodeField } from './util'
-import { RecordQueryBll, RecordQuery, RecordAggregateByPatchSort, RecordGroup, Sort } from '../../interface/record-query'
+import { RecordQueryBll, RecordQuery, RecordAggregateByPatchSort, RecordGroup, Sort, ScanQuery } from '../../interface/record-query'
 import dbClient from '../../service/mongodb'
 import { createLogger } from '../../service/logger'
 const logger = createLogger({ label: 'mongodb-collection-engine' })
@@ -33,6 +33,28 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
 
   private get collection(): MongodbCollection {
     return this.db.collection('record')
+  }
+
+  async scan({ filter, limit, skip = 0, options = {} }: ScanQuery): Promise<AsyncIterable<RecordData>> {
+    // filter transform to mongo query condition
+    const conds = decodeBsonQuery(filter || {})
+    const cursor = this.collection.find(conds)
+
+    if (skip) cursor.skip(skip)
+    if (limit) cursor.limit(limit)
+
+    // add time limit for query
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) cursor.maxTimeMS(maxTimeMs)
+
+    // add hint for query
+    if (options?.hint) cursor.hint(options.hint)
+
+    // add readPreference for query
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference as ReadPreferenceLike)
+
+    // cursor transform to RecordData
+    return this.stream(cursor)
   }
 
   async query({ filter, sort, spaceId, entityId, limit, skip = 0, options = {} }: RecordQuery<any, Sort>): Promise<AsyncIterable<RecordData>> {
@@ -74,7 +96,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     if (options?.hint) cursor.hint(options.hint)
 
     // add readPreference for query
-    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference as ReadPreferenceLike)
 
     // cursor transform to RecordData
     return this.stream(cursor)
@@ -120,7 +142,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     const cursor = this.collection.aggregate(pipeline, aggOption)
 
     // add readPreference for aggregate
-    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference as ReadPreferenceLike)
 
     return this.stream(cursor)
   }
@@ -148,7 +170,7 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
       entityId,
     }, conds)
 
-    const result = await this.collection.countDocuments(conds, Object.assign({}, config.MONGODB_QUERY_OPTIONS, options))
+    const result = await this.collection.countDocuments(conds, Object.assign({}, config.MONGODB_QUERY_OPTIONS, options) as CountDocumentsOptions)
     return result
   }
 
@@ -188,10 +210,6 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     }
 
     const aggOption = {}
-    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
-    if (maxTimeMs) {
-      Object.assign(aggOption, { maxTimeMS: maxTimeMs })
-    }
 
     // add hint for aggregate
     if (options?.hint) {
@@ -200,8 +218,12 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
 
     const cursor = this.collection.aggregate(pipeline, aggOption)
 
+    const maxTimeMs = options?.maxTimeMs || config.MONGODB_QUERY_OPTIONS?.maxTimeMs
+    if (maxTimeMs) {
+      cursor.maxTimeMS(maxTimeMs)
+    }
     // add readPreference for aggregate
-    if (options?.readPreference) cursor.withReadPreference(options.readPreference)
+    if (options?.readPreference) cursor.withReadPreference(options.readPreference as ReadPreferenceLike)
 
     return this.stream(cursor, false)
   }
