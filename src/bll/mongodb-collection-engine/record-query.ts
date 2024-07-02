@@ -74,6 +74,19 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
           $ifNull: ['$' + decodeField(key), '$' + decodeField(value.falseField)]
         }
       }
+      if (value.arrField) {
+        addFields[decodeField(key)] = {
+          $cond: {
+            if: { $isArray: '$' + decodeField(value.arrField) },
+            then: { $reduce: {
+              input: '$' + decodeField(value.arrField),
+              initialValue: '',
+              in: { $concat: ["$$value", { $toString: "$$this" }] }
+            }},
+            else: '$' + decodeField(value.arrField),
+          }
+        }
+      }
       singleSort[decodeField(key)] = value.order || 1
     })
 

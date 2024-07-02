@@ -50,7 +50,8 @@ export interface Group {
 
 export interface Sort {
   [key: string]: {
-    falseField: string
+    falseField?: string
+    arrField?: string
     order: 1 | -1
   }
 }
