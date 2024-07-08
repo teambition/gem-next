@@ -51,7 +51,7 @@ export interface Group {
 export interface Sort {
   [key: string]: {
     falseField?: string
-    arrField?: string
+    isArrField?: boolean
     order: 1 | -1
   }
 }

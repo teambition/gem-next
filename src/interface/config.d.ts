@@ -19,6 +19,10 @@ declare module 'config' {
     SERVER_RATELIMIT: { [x: string]: number }
     SERVER_RATELIMIT_RESET_INTERVAL_MS?: number
     SERVER_RATELIMIT_RETRY_INTERVAL_MS?: number
+    JAEGER?: {
+      RATE?: number
+      ENDPOINT?: string
+    }
   }
 
   const config: Config

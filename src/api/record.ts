@@ -20,7 +20,7 @@ const maxResultWindow = config.MONGODB_QUERY_OPTIONS?.maxResultWindow || 10000
 interface PatchSort {
   order: 1| -1,
   falseField?: string
-  arrField?: string
+  isArrField?: boolean
 }
 interface RecordQueryRequest {
   spaceId: string
@@ -109,7 +109,7 @@ export class RecordAPI {
     ctx.state.sort = Object.keys(sort).reduce((map, key) => {
       map[key] = {
         falseField: sort[key]?.falseField || null,
-        arrField: sort[key]?.arrField || null,
+        isArrField: sort[key]?.isArrField,
         order: sort[key]?.order || sort[key] || 1,
       }
       return map
@@ -220,7 +220,7 @@ export class RecordAPI {
     ctx.state.sort = Object.keys(sort).reduce((map, key) => {
       map[key] = {
         falseField: sort[key]?.falseField || null,
-        arrField: sort[key]?.arrField || null,
+        isArrField: sort[key]?.isArrField,
         order: sort[key]?.order || sort[key] || 1,
       }
       return map

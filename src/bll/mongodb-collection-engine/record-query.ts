@@ -69,25 +69,26 @@ export class MongodbCollectionRecordQueryBllImpl implements RecordQueryBll<any, 
     const singleSort = {}
 
     Object.entries(sort || {}).map(([key, value]) => {
+      let sortField = decodeField(key)
       if (value.falseField) {
-        addFields[decodeField(key)] = {
+        addFields[sortField] = {
           $ifNull: ['$' + decodeField(key), '$' + decodeField(value.falseField)]
         }
-      }
-      if (value.arrField) {
-        addFields[decodeField(key)] = {
+      } else if (value.isArrField) {
+        sortField = decodeField('sort:' + key)
+        addFields[sortField] = {
           $cond: {
-            if: { $isArray: '$' + decodeField(value.arrField) },
+            if: { $isArray: '$' + decodeField(key) },
             then: { $reduce: {
-              input: '$' + decodeField(value.arrField),
+              input: '$' + decodeField(key),
               initialValue: '',
               in: { $concat: ["$$value", { $toString: "$$this" }] }
             }},
-            else: '$' + decodeField(value.arrField),
+            else: '$' + decodeField(key),
           }
         }
       }
-      singleSort[decodeField(key)] = value.order || 1
+      singleSort[sortField] = value.order || 1
     })
 
     if (Object.keys(addFields).length) {

@@ -15,6 +15,7 @@ export function loggerMW(): Middleware {
           duration: Date.now() - start,
           url: ctx.originalUrl,
           userAgent: ctx.get('user-agent'),
+          xRequestId: ctx.response.get('x-request-id'),
         })
       }
     }
