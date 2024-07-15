@@ -59,7 +59,7 @@ export function checkEntityRateLimitMW ({ memoryStore = globalMemoryStore, leftT
   return async (ctx) => {
     if (!config.SERVER_RATELIMIT) return
 
-    const { spaceId, entityId } = ctx.request.body
+    const { spaceId, entityId } = ctx.request.body as any
     if (!spaceId || !entityId) return
 
     let prefixKey = spaceId + '-' + entityId
